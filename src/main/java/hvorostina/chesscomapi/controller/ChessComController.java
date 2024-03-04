@@ -16,7 +16,7 @@ public class ChessComController {
     @GetMapping("/search")
     public String getUserByUsername(@RequestParam String username) {
         JsonNode response = service.getUserByUsername(username);
-        if(response == null) return "Do not get upset! View pretty cat here -> https://http.cat/404.jpg";
+        if(response == null) return "Do not get upset! View pretty cat here -> https://genrandom.com/cats/";
         return response.toPrettyString();
     }
 }
