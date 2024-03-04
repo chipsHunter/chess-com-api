@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChessComController {
     private final ChessComService service;
     @GetMapping("/search")
-    public JsonNode getUserByUsername(@RequestParam String username) {
+    public String getUserByUsername(@RequestParam String username) {
         JsonNode response = service.getUserByUsername(username);
-        return service.getUserByUsername(username);
+        if(response == null) return "Do not get upset! View pretty cat here -> https://http.cat/404.jpg";
+        return response.toPrettyString();
     }
 }

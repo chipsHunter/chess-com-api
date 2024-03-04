@@ -1,9 +1,13 @@
 package hvorostina.chesscomapi.ChessComAPI;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import hvorostina.chesscomapi.exception.ExceptionHandler;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
+import reactor.core.publisher.Mono;
 
 @Component
 public class ChessComAPI {
@@ -19,11 +23,14 @@ public class ChessComAPI {
 
     //WebClient
     public JsonNode getUserByUsername(String username) {
-        return webClient
+        JsonNode response =  webClient
                 .get()
                 .uri(uriBuilder -> uriBuilder.path("player/" + username).build())
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, error -> Mono.error(new ExceptionHandler(error.statusCode().value())))
                 .bodyToMono(JsonNode.class)
+                .onErrorResume(ExceptionHandler.class, ex -> Mono.empty())
                 .block();
+        return response;
     }
 }
