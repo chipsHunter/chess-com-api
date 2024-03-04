@@ -1,4 +1,4 @@
-package hvorostina.chesscomapi.chessComAPI;
+package hvorostina.chesscomapi.chess_com_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import hvorostina.chesscomapi.exception.ClientServerException;
@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class ChessComAPI {
-    private final static String BASE_URL = "https://api.chess.com/pub/";
+    private static final String BASE_URL = "https://api.chess.com/pub/";
     private final WebClient webClient;
 
     public ChessComAPI() {

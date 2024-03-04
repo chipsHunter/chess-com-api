@@ -1,7 +1,7 @@
 package hvorostina.chesscomapi.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import hvorostina.chesscomapi.chessComAPI.ChessComAPI;
+import hvorostina.chesscomapi.chess_com_api.ChessComAPI;
 import hvorostina.chesscomapi.service.ChessComService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
