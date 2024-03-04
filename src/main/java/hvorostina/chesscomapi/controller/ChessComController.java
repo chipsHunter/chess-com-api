@@ -5,6 +5,7 @@ import hvorostina.chesscomapi.service.ChessComService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @AllArgsConstructor
@@ -12,8 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/chess-com")
 public class ChessComController {
     private final ChessComService service;
-    @GetMapping
-    public JsonNode getUserByUsername(String username) {
+    @GetMapping("/search")
+    public JsonNode getUserByUsername(@RequestParam String username) {
+        JsonNode response = service.getUserByUsername(username);
         return service.getUserByUsername(username);
     }
 }
