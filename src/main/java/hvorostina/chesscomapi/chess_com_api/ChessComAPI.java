@@ -19,7 +19,6 @@ public class ChessComAPI {
                 .build();
     }
 
-    //WebClient
     public JsonNode getUserByUsername(String username) {
         return webClient
                 .get()

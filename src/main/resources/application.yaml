@@ -1,1 +1,15 @@
-
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chess_com_database
+    username: postgres
+    password: hvorosttina17
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database: postgresql
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: true
