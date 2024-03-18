@@ -2,13 +2,14 @@ package hvorostina.chesscomapi.model.mapper;
 
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.function.Function;
 
+@Component
 public class PlayerDTOMapper implements Function<Player, PlayerDTO> {
     @Override
     public PlayerDTO apply(Player player) {

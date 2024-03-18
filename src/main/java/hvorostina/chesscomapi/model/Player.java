@@ -3,12 +3,13 @@ package hvorostina.chesscomapi.model;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
-@Builder
 public class Player {
     @Id
     @Column(nullable = false, unique = true)
@@ -20,12 +21,13 @@ public class Player {
     @Column(nullable = false)
     String status;
     @ManyToMany     //owning side
+    @LazyCollection(LazyCollectionOption.EXTRA)
     @JoinTable(
             name = "chess_matches",
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
-    List<Game> games;
+    Set<Game> games;
     @OneToMany(mappedBy = "user")
-    List<GameReview> gameReviews;
+    Set<GameReview> gameReviews;
 }

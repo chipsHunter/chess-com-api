@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -35,5 +35,5 @@ public class Game {
     Integer blackRating;
     @Column(name = "winner_rating", nullable = false, columnDefinition = "integer default 0")
     @ManyToMany(mappedBy = "games")     //target side
-    List<Player> players;
+    Set<Player> players;
 }

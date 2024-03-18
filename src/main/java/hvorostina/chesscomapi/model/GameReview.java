@@ -33,6 +33,5 @@ public class GameReview {
     @Column(name = "draws", nullable = false, columnDefinition = "integer default 0")
     Integer drawCasesRecord;
     @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     Player user;
 }
