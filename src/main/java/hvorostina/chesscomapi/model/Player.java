@@ -6,7 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Data
@@ -27,7 +27,7 @@ public class Player {
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
-    Set<Game> games;
+    List<Game> games;
     @OneToMany(mappedBy = "user")
-    Set<GameReview> gameReviews;
+    List<GameReview> gameReviews;
 }

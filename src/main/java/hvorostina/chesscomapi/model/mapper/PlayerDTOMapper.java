@@ -16,7 +16,7 @@ public class PlayerDTOMapper implements Function<Player, PlayerDTO> {
         try {
             return PlayerDTO.builder()
                     .playerID(player.getPlayerID())
-                    .userAccount((new URI("https://api.chess.com/pub/player/".concat(player.getUsername())).toURL()))
+                    .userAccount((new URI("https://api.chess.com/pub/player/".concat(player.getUsername()))).toURL())
                     .username(player.getUsername())
                     .status(player.getStatus())
                     .country(player.getCountry())

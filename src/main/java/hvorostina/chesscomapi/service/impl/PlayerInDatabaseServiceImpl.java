@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Data
 @Service
 @Transactional
-public class PlayerServiceImpl implements PlayerService {
+public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
     @Override

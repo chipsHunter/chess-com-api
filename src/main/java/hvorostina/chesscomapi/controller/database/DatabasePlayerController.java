@@ -5,7 +5,6 @@ import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
@@ -38,7 +37,7 @@ public class DatabasePlayerController {
         player.setUsername(playerDTO.getUsername());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
         return new ResponseEntity<>(playerDTO, HttpStatus.CREATED);
     }
     @PatchMapping("/update_user")

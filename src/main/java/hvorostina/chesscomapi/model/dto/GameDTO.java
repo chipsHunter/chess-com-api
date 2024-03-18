@@ -1,16 +1,30 @@
 package hvorostina.chesscomapi.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
+@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
+    @JsonProperty("url")
     String gameURL;
-    Data gameData;
+    @JsonProperty("uuid")
+    String UUID;
+    @JsonProperty("end_time")
+    Timestamp gameTimestamp;
+    LocalDateTime gameData;
+    @JsonProperty("time_class")
     String timeClass;
-    String whitePlayerUsername;
-    int whitePlayerRating;
-    String blackPlayerUsername;
-    int blackPlayerRating;
-    String wonSide;
+    @JsonProperty("white")
+    PlayerInGameDTO whitePlayer;
+    @JsonProperty("black")
+    PlayerInGameDTO blackPlayer;
 }
