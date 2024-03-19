@@ -40,8 +40,8 @@ public class DatabaseGameController {
         return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
     }
     @GetMapping("/find")
-    public ResponseEntity<GameDTO> findGameByUUID(@RequestParam String UUID) {
-        Optional<GameDTO> foundGame = gameService.findGameByUUID(UUID);
+    public ResponseEntity<GameDTO> findGameByUUID(@RequestParam String uuid) {
+        Optional<GameDTO> foundGame = gameService.findGameByUUID(uuid);
         return foundGame.map(gameDTO ->
                 new ResponseEntity<>(gameDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
@@ -57,12 +57,12 @@ public class DatabaseGameController {
         return gameService.findAllGames();
     }
     @DeleteMapping("/delete")
-    public HttpStatusCode deleteGame(@RequestParam String UUID) {
+    public HttpStatusCode deleteGame(@RequestParam String uuid) {
         try {
-            Optional<GameDTO> gameDTO = gameService.findGameByUUID(UUID);
+            Optional<GameDTO> gameDTO = gameService.findGameByUUID(uuid);
             if(gameDTO.isEmpty())
                 return HttpStatus.BAD_REQUEST;
-            gameService.deleteGame(UUID);
+            gameService.deleteGame(uuid);
             gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getWhitePlayer().getUsername());
             gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getBlackPlayer().getUsername());
             return HttpStatus.OK;

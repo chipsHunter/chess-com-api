@@ -23,13 +23,14 @@ public class DatabasePlayerController {
         return playerService.findAllPlayers();
     }
     @GetMapping("/find")
-    public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username) {
+    public ResponseEntity<String> findUserByUsername(@RequestParam String username) {
         Optional<PlayerDTO> player = playerService.findPlayerByUsername(username);
-        return player.map(playerDTO -> new ResponseEntity<>(playerDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return player.map(playerDTO ->
+                new ResponseEntity<>(playerDTO.toString(), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>("Nothing was found!", HttpStatus.NOT_FOUND));
     }
     @PostMapping("/add")
-    public ResponseEntity<PlayerDTO> addUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<String> addUser(@RequestBody PlayerDTO playerDTO) {
         Player player = new Player();
         player.setPlayerID(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
@@ -37,14 +38,14 @@ public class DatabasePlayerController {
         player.setUsername(playerDTO.getUsername());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
-            return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-        return new ResponseEntity<>(playerDTO, HttpStatus.CREATED);
+            return new ResponseEntity<>("User already exists!", HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(playerDTO.toString(), HttpStatus.CREATED);
     }
     @PatchMapping("/update")
-    public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<String> updateUser(@RequestBody PlayerDTO playerDTO) {
         Optional<PlayerDTO> result = playerService.updatePlayer(playerDTO);
-        return result.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return result.map(dto -> new ResponseEntity<>(dto.toString(), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>("There's no user with username" + playerDTO.getUsername(), HttpStatus.NOT_FOUND));
     }
     @DeleteMapping("/delete")
     public HttpStatus deleteUser(@RequestParam String username) {

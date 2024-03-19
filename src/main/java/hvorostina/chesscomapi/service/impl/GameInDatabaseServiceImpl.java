@@ -8,15 +8,12 @@ import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
-import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.xml.crypto.Data;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -115,15 +112,15 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDTO> findGameByUUID(String UUID) {
+    public Optional<GameDTO> findGameByUUID(String uuid) {
         return gameRepository
-                .findGameByUUID(UUID)
+                .findGameByUUID(uuid)
                 .map(gameDTOMapper);
     }
 
     @Override
-    public void deleteGame(String UUID) {
-        Optional<Game> game = gameRepository.findGameByUUID(UUID);
+    public void deleteGame(String uuid) {
+        Optional<Game> game = gameRepository.findGameByUUID(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         gameRepository.delete(game.get());
