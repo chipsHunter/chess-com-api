@@ -25,7 +25,7 @@ public class GameDTOMapper implements Function<Game, GameDTO> {
                     .gameURL((new URI(game.getGameURL())).toURL())
                     .gameTimestamp(game.getData())
                     .gameData(LocalDateTime.ofInstant(game.getData().toInstant(), ZoneId.of("UTC+03:00")))
-                    .uuid(game.getUUID())
+                    .uuid(game.getUuid())
                     .timeClass(game.getTimeClass())
                     .whitePlayer(playersInGameDTOMapper.apply(game).get(0))
                     .blackPlayer(playersInGameDTOMapper.apply(game).get(1))

@@ -18,7 +18,7 @@ public class Game {
     @Column(name = "game_url", nullable = false, unique = true)
     String gameURL;
     @Column(name = "uuid", nullable = false, unique = true)
-    String UUID;
+    String uuid;
     @Column(name = "time_class", nullable = false)
     String timeClass;
     @Column(name = "data", nullable = false)

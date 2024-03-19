@@ -2,7 +2,9 @@ package hvorostina.chesscomapi.model.mapper;
 
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -25,7 +27,7 @@ public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> 
                     .drawCasesRecord(gameReview.getDrawCasesRecord())
                     .build();
         } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new HttpClientErrorException(HttpStatus.URI_TOO_LONG);
         }
     }
 }

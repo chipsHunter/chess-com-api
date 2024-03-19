@@ -24,12 +24,12 @@ public class DatabaseGameReviewController {
         return gameReviewService.viewPlayerStatistics(username);
     }
     @PatchMapping("/patch")
-    public ResponseEntity<GameReviewDTO> patchPlayerStatistics(@RequestBody GameDTO game) {
-        return new ResponseEntity<>(null, HttpStatus.METHOD_NOT_ALLOWED);
+    public ResponseEntity<String> patchPlayerStatistics(@RequestBody GameDTO game) {
+        return new ResponseEntity<>("You can't call this method", HttpStatus.METHOD_NOT_ALLOWED);
     }
     @PostMapping("/add")
-    public ResponseEntity<GameReviewDTO> addPlayerStatistics(@RequestBody GameDTO game) {
-        return new ResponseEntity<>(null, HttpStatus.METHOD_NOT_ALLOWED);
+    public ResponseEntity<String> addPlayerStatistics(@RequestBody GameDTO game) {
+        return new ResponseEntity<>("You can't call this method", HttpStatus.METHOD_NOT_ALLOWED);
     }
     @DeleteMapping("/delete")
     public HttpStatus deletePlayerStatistics(@RequestParam String gameType, @RequestParam String username) {

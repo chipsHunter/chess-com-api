@@ -35,7 +35,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
         newGame.setData(game.getGameTimestamp());
-        newGame.setUUID(game.getUuid());
+        newGame.setUuid(game.getUuid());
         List<Player> players = new ArrayList<>();
         Optional<Player> whitePlayer = playerRepository
                 .findPlayerByUsername(game
