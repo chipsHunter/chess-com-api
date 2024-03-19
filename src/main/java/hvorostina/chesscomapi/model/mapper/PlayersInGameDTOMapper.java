@@ -12,8 +12,6 @@ import java.util.function.Function;
 public class PlayersInGameDTOMapper implements Function <Game, List<PlayerInGameDTO>> {
     @Override
     public List<PlayerInGameDTO> apply(Game game) {
-        if(game.getPlayers().isEmpty())
-            return List.of();
         List<PlayerInGameDTO> playersInGameDTO = new ArrayList<>();
         PlayerInGameDTO whitePlayer = PlayerInGameDTO.builder()
                 .username(game.getPlayers().get(0).getUsername())
@@ -23,9 +21,14 @@ public class PlayersInGameDTOMapper implements Function <Game, List<PlayerInGame
                 .username(game.getPlayers().get(1).getUsername())
                 .rating(game.getBlackRating())
                 .build();
-        if(Objects.equals(game.getWinnerSide(), "white"))
+        if(Objects.equals(game.getWinnerSide(), "white")) {
             whitePlayer.setGameResult("win");
-        else blackPlayer.setGameResult("win");
+            blackPlayer.setGameResult(game.getGameResult());
+        }
+        else {
+            blackPlayer.setGameResult("win");
+            whitePlayer.setGameResult(game.getGameResult());
+        }
         playersInGameDTO.add(0, whitePlayer);
         playersInGameDTO.add(1, blackPlayer);
         return playersInGameDTO;

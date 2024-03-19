@@ -21,13 +21,12 @@ public class Player {
     @Column(nullable = false)
     String status;
     @ManyToMany     //owning side
-    @LazyCollection(LazyCollectionOption.EXTRA)
     @JoinTable(
             name = "chess_matches",
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
     List<Game> games;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     List<GameReview> gameReviews;
 }

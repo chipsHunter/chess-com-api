@@ -1,8 +1,11 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.dto.GameDTO;
+import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
+import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
+import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -18,17 +21,23 @@ import java.util.Optional;
 @RequestMapping("/database/game")
 public class DatabaseGameController {
     private final GameService gameService;
-    private final GameDTOMapper gameDTOMapper;
+    private final GameReviewService gameReviewService;
+    private final PlayerService playerService;
     @PostMapping("/add")
     public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO gameDTO) {
-        try {
-            Optional<GameDTO> addedGame = gameService.addGame(gameDTO);
-            if(addedGame.isEmpty())
-                return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-            return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
-        } catch (HttpClientErrorException exception) {
-            return new ResponseEntity<>(null, exception.getStatusCode());
-        }
+        if(playerService.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername()).isEmpty() ||
+            playerService.findPlayerByUsername(gameDTO.getBlackPlayer().getUsername()).isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        Optional<GameDTO> addedGame = gameService.addGame(gameDTO);
+        if(addedGame.isEmpty())
+            return new ResponseEntity<>(gameDTO, HttpStatus.FOUND);
+        if(gameReviewService.findGameReview(gameDTO.getTimeClass(), addedGame.get().getWhitePlayer().getUsername()).isEmpty())
+            gameReviewService.createTimeClassReview(gameDTO, addedGame.get().getWhitePlayer().getUsername());
+        else gameReviewService.updateTimeClassReviewWithGame(gameDTO, addedGame.get().getWhitePlayer().getUsername());
+        if(gameReviewService.findGameReview(gameDTO.getTimeClass(), addedGame.get().getBlackPlayer().getUsername()).isEmpty())
+            gameReviewService.createTimeClassReview(gameDTO, addedGame.get().getBlackPlayer().getUsername());
+        else gameReviewService.updateTimeClassReviewWithGame(gameDTO, addedGame.get().getBlackPlayer().getUsername());
+        return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
     }
     @GetMapping("/find")
     public ResponseEntity<GameDTO> findGameByUUID(@RequestParam String UUID) {
@@ -50,7 +59,12 @@ public class DatabaseGameController {
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(@RequestParam String UUID) {
         try {
+            Optional<GameDTO> gameDTO = gameService.findGameByUUID(UUID);
+            if(gameDTO.isEmpty())
+                return HttpStatus.BAD_REQUEST;
             gameService.deleteGame(UUID);
+            gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getWhitePlayer().getUsername());
+            gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getBlackPlayer().getUsername());
             return HttpStatus.OK;
         }
         catch (HttpClientErrorException exception) {

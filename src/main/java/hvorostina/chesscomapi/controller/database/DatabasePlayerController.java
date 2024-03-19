@@ -22,13 +22,13 @@ public class DatabasePlayerController {
     public List<PlayerDTO> findAllUsers() {
         return playerService.findAllPlayers();
     }
-    @GetMapping("/find_user")
+    @GetMapping("/find")
     public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username) {
         Optional<PlayerDTO> player = playerService.findPlayerByUsername(username);
         return player.map(playerDTO -> new ResponseEntity<>(playerDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
-    @PostMapping("/add_user")
+    @PostMapping("/add")
     public ResponseEntity<PlayerDTO> addUser(@RequestBody PlayerDTO playerDTO) {
         Player player = new Player();
         player.setPlayerID(playerDTO.getPlayerID());
@@ -40,13 +40,13 @@ public class DatabasePlayerController {
             return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
         return new ResponseEntity<>(playerDTO, HttpStatus.CREATED);
     }
-    @PatchMapping("/update_user")
+    @PatchMapping("/update")
     public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO) {
         Optional<PlayerDTO> result = playerService.updatePlayer(playerDTO);
         return result.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
-    @DeleteMapping("/delete_user")
+    @DeleteMapping("/delete")
     public HttpStatus deleteUser(@RequestParam String username) {
         try {
             playerService.deletePlayerByUsername(username);

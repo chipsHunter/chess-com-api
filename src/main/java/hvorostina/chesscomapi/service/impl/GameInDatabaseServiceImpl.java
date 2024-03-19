@@ -6,7 +6,9 @@ import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
+import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
+import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,35 +30,41 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameDTOMapper gameDTOMapper;
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
+    private final GameReviewRepository gameReviewRepository;
     @Override
     public Optional<GameDTO> addGame(GameDTO game) {
         if(gameRepository.findGameByUUID(game.getUUID()).isPresent())
             return Optional.empty();
         Game newGame = new Game();
-        newGame.setGameURL(game.getGameURL());
+        newGame.setGameURL(game.getGameURL().toString());
         newGame.setData(game.getGameTimestamp());
         newGame.setUUID(game.getUUID());
-        List<Player> playerList = new ArrayList<>();
+        List<Player> players = new ArrayList<>();
         Optional<Player> whitePlayer = playerRepository
                 .findPlayerByUsername(game
                         .getWhitePlayer()
                         .getUsername());
         if(whitePlayer.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        playerList.add(0, whitePlayer.get());
+            return Optional.empty();
+        players.add(0, whitePlayer.get());
         Optional<Player> blackPlayer = playerRepository
                 .findPlayerByUsername(game
                         .getBlackPlayer()
                         .getUsername());
         if(blackPlayer.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        playerList.add(0, blackPlayer.get());
-        newGame.setPlayers(playerList);
+            return Optional.empty();
+        players.add(1, blackPlayer.get());
+        newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
         newGame.setBlackRating(game.getBlackPlayer().getRating());
-        if(Objects.equals(game.getWhitePlayer().getGameResult(), "win"))
+        if(Objects.equals(game.getWhitePlayer().getGameResult(), "win")) {
             newGame.setWinnerSide("white");
-        else newGame.setWinnerSide("black");
+            newGame.setGameResult(game.getBlackPlayer().getGameResult());
+        }
+        else {
+            newGame.setWinnerSide("black");
+            newGame.setGameResult(game.getWhitePlayer().getGameResult());
+        }
         newGame.setTimeClass(game.getTimeClass());
         return Optional.of(gameDTOMapper.apply(gameRepository.save(newGame)));
     }
@@ -71,7 +79,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         if(gameParams.getTimeClass() != null)
             updatedGame.get().setTimeClass(gameParams.getTimeClass());
         if(gameParams.getGameURL() != null)
-            updatedGame.get().setGameURL(gameParams.getGameURL());
+            updatedGame.get().setGameURL(gameParams.getGameURL().toString());
         if(gameParams.getBlackPlayer() != null) {
             PlayerInGameDTO blackPlayer = gameParams.getBlackPlayer();
             Optional<Player> newBlackPlayer = playerRepository.findPlayerByUsername(blackPlayer.getUsername());
@@ -79,6 +87,7 @@ public class GameInDatabaseServiceImpl implements GameService {
                 return Optional.empty();
             if(Objects.equals(blackPlayer.getGameResult(), "win")) {
                 updatedGame.get().setWinnerSide("black");
+                updatedGame.get().setGameResult(gameParams.getWhitePlayer().getGameResult());
             }
             updatedGame.get().setBlackRating(blackPlayer.getRating());
             updatedGame.get().getPlayers().set(1, newBlackPlayer.get());
@@ -90,6 +99,7 @@ public class GameInDatabaseServiceImpl implements GameService {
                 return Optional.empty();
             if(Objects.equals(whitePlayer.getGameResult(), "win")) {
                 updatedGame.get().setWinnerSide("white");
+                updatedGame.get().setGameResult(gameParams.getBlackPlayer().getGameResult());
             }
             updatedGame.get().setWhiteRating(whitePlayer.getRating());
             updatedGame.get().getPlayers().set(1, newWhitePlayer.get());

@@ -29,6 +29,13 @@ public class Game {
     Integer whiteRating;
     @Column(name = "black_rating", nullable = false, columnDefinition = "integer default 0")
     Integer blackRating;
-    @ManyToMany(mappedBy = "games")     //target side
+    @Column(name = "game_result", nullable = false)
+    String gameResult;
+    @ManyToMany     //target side
+    @JoinTable(
+            name = "chess_matches",
+            joinColumns = @JoinColumn(name = "game_id"),
+            inverseJoinColumns = @JoinColumn(name = "player_id")
+    )
     List<Player> players;
 }
