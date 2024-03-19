@@ -1,10 +1,7 @@
 package hvorostina.chesscomapi.model;
 
-import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import java.util.List;
 

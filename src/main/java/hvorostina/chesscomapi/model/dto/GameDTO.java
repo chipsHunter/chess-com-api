@@ -2,10 +2,8 @@ package hvorostina.chesscomapi.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.net.URL;
 import java.sql.Timestamp;
@@ -18,7 +16,7 @@ public class GameDTO {
     @JsonProperty("url")
     URL gameURL;
     @JsonProperty("uuid")
-    String UUID;
+    String uuid;
     @JsonProperty("end_time")
     Timestamp gameTimestamp;
     LocalDateTime gameData;

@@ -3,7 +3,9 @@ package hvorostina.chesscomapi.model.mapper;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -23,13 +25,13 @@ public class GameDTOMapper implements Function<Game, GameDTO> {
                     .gameURL((new URI(game.getGameURL())).toURL())
                     .gameTimestamp(game.getData())
                     .gameData(LocalDateTime.ofInstant(game.getData().toInstant(), ZoneId.of("UTC+03:00")))
-                    .UUID(game.getUUID())
+                    .uuid(game.getUUID())
                     .timeClass(game.getTimeClass())
                     .whitePlayer(playersInGameDTOMapper.apply(game).get(0))
                     .blackPlayer(playersInGameDTOMapper.apply(game).get(1))
                     .build();
         } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new HttpClientErrorException(HttpStatus.URI_TOO_LONG);
         }
     }
 }

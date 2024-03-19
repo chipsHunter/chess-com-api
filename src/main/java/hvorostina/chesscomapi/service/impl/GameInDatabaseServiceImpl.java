@@ -30,12 +30,12 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     @Override
     public Optional<GameDTO> addGame(GameDTO game) {
-        if(gameRepository.findGameByUUID(game.getUUID()).isPresent())
+        if(gameRepository.findGameByUUID(game.getUuid()).isPresent())
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
         newGame.setData(game.getGameTimestamp());
-        newGame.setUUID(game.getUUID());
+        newGame.setUUID(game.getUuid());
         List<Player> players = new ArrayList<>();
         Optional<Player> whitePlayer = playerRepository
                 .findPlayerByUsername(game
@@ -68,7 +68,7 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public Optional<GameDTO> updateGameResult(GameDTO gameParams) {
-        Optional<Game> updatedGame =  gameRepository.findGameByUUID(gameParams.getUUID());
+        Optional<Game> updatedGame =  gameRepository.findGameByUUID(gameParams.getUuid());
         if(updatedGame.isEmpty())
             return Optional.empty();
         if(gameParams.getGameTimestamp() != null)
