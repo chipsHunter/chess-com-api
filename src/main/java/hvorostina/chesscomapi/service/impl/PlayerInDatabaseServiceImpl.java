@@ -26,7 +26,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         List<Player> players = playerDatabaseRepository.findAll();
         return players.stream()
                 .map(playerDTOMapper)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
