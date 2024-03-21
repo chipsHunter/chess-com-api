@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -31,92 +30,123 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
+    private final String CHECKMATED = "checkmated";
+    private final String WIN = "win";
+    private final String LOSS = "loss";
+    private final String DRAW = "draw";
+    private final String WHITE = "white";
+    private final String BLACK = "black";
+    private final int ADD = 1;
+    private final int DELETE = -1;
     @Override
-    public Optional<GameReviewDTO> createTimeClassReview(GameDTO gameDTO, String username) {
+    public void manageGameReviewForNewGame(GameDTO gameDTO) {
+        Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername());
+        if(whitePlayer.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        Optional<Player> blackPlayer = playerRepository.findPlayerByUsername(gameDTO.getBlackPlayer().getUsername());
+        if(blackPlayer.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        Optional<GameReview> existingGameReview = gameReviewRepository
+                .findAllByUser(whitePlayer.get()).stream()
+                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTO.getTimeClass()))
+                .findAny();
+        if(existingGameReview.isEmpty()) {
+            createTimeClassReview(gameDTO, whitePlayer.get());
+            createTimeClassReview(gameDTO, blackPlayer.get());
+        } else {
+            updateTimeClassReviewByAddingGame(existingGameReview.get(), gameDTO, whitePlayer.get());
+            updateTimeClassReviewByAddingGame(existingGameReview.get(), gameDTO, blackPlayer.get());
+        }
+    }
+    @Override
+    public void createTimeClassReview(GameDTO gameDTO, Player player) {
+        Optional<Game> game = gameRepository.findGameByUuid(gameDTO.getUuid());
+        if(game.isEmpty())
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        PlayerInGameDTO playerResults;
+        if(gameDTO.getWhitePlayer().getUsername().equals(player.getUsername()))
+            playerResults = gameDTO.getWhitePlayer();
+        else
+            playerResults = gameDTO.getBlackPlayer();
+        GameReview gameReview = new GameReview();
+        gameReview.setBestGame(game.get());
+        gameReview.setUser(player);
+        changePlayerReviewRecords(gameReview, playerResults, ADD);
+        gameReviewRepository.save(gameReview);
+    }
+    @Override
+    public void updateTimeClassReviewByAddingGame(GameReview gameReview, GameDTO game, Player player) {
+        Optional<Game> addedGame = gameRepository.findGameByUuid(game.getUuid());
+        if(addedGame.isEmpty())
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        String gameSide;
+        PlayerInGameDTO playerResults;
+        if(game.getWhitePlayer().getUsername().equals(player.getUsername())) {
+            playerResults = game.getWhitePlayer();
+            gameSide = WHITE;
+        }
+        else {
+            playerResults = game.getBlackPlayer();
+            gameSide = BLACK;
+        }
+        changePlayerReviewRecords(gameReview, playerResults, ADD);
+        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(WHITE) ||
+                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(BLACK))
+            gameReview.setBestGame(addedGame.get());
+        gameReviewRepository.save(gameReview);
+    }
+    @Override
+    public void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO playerResults, int calledMethod) {
+        if(calledMethod < -1 || calledMethod > 1)
+            throw new UnsupportedOperationException();
+        if(Objects.equals(playerResults.getGameResult(), WIN))
+            gameReview.setWinCasesRecord(gameReview.getWinCasesRecord() + calledMethod);
+        if(Objects.equals(playerResults.getGameResult(), LOSS) ||
+                Objects.equals(playerResults.getGameResult(), CHECKMATED))
+            gameReview.setLossCasesRecord(gameReview.getLossCasesRecord() + calledMethod);
+        if(Objects.equals(playerResults.getGameResult(), DRAW))
+            gameReview.setDrawCasesRecord(gameReview.getDrawCasesRecord() + calledMethod);
+    }
+    @Override
+    public void updateTimeClassReviewByDeletingGame(GameDTO game, String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         if(player.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        if(gameReviewRepository.findGameReviewByGameTypeAndUser(gameDTO.getTimeClass(), player.get()).isPresent())
-            return Optional.empty();
-        GameReview gameReview = new GameReview();
-        gameReview.setGameType(gameDTO.getTimeClass());
-        gameReview.setBestGameURL(gameDTO.getGameURL().toString());
-        gameReview.setBestGameDate(gameDTO.getGameTimestamp());
-        gameReview.setUser(player.get());
-        if(Objects.equals(gameDTO.getWhitePlayer().getUsername(), username)) {
-            if(Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "win")) {
-                gameReview.setWinCasesRecord(1);
-                gameReview.setDrawCasesRecord(0);
-                gameReview.setLossCasesRecord(0);
-            } else if(Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "loss") ||
-                    Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "checkmated")) {
-                gameReview.setWinCasesRecord(0);
-                gameReview.setDrawCasesRecord(0);
-                gameReview.setLossCasesRecord(1);
-            } else {
-                gameReview.setWinCasesRecord(0);
-                gameReview.setDrawCasesRecord(1);
-                gameReview.setLossCasesRecord(0);
-            }
-        } else {
-            if(Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "win")) {
-                gameReview.setWinCasesRecord(1);
-                gameReview.setDrawCasesRecord(0);
-                gameReview.setLossCasesRecord(0);
-            } else if(Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "loss") ||
-                    Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "checkmated")) {
-                gameReview.setWinCasesRecord(0);
-                gameReview.setDrawCasesRecord(0);
-                gameReview.setLossCasesRecord(1);
-            } else {
-                gameReview.setWinCasesRecord(0);
-                gameReview.setDrawCasesRecord(1);
-                gameReview.setLossCasesRecord(0);
-            }
-        }
-        return Optional.of(gameReviewDTOMapper.apply(gameReviewRepository.save(gameReview)));
-    }
-
-    @Override
-    public Optional<GameReviewDTO> updateTimeClassReviewWithGame(GameDTO gameDTO, String username) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        Optional<GameReview> gameReview = gameReviewRepository.findGameReviewByGameTypeAndUser(gameDTO.getTimeClass(), player.get());
+        Optional<GameReview> gameReview = findGameReview(game.getTimeClass(), username);
         if(gameReview.isEmpty())
-            return Optional.empty();
-        if(Objects.equals(gameDTO.getWhitePlayer().getUsername(), username)) {
-            if(Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "win")) {
-                gameReview.get().setWinCasesRecord(gameReview.get().getWinCasesRecord() + 1);
-                Optional<Game> oldBestGame = gameRepository.findGameByGameURL(gameReview.get().getBestGameURL());
-                if(oldBestGame.isEmpty())
-                    throw new HttpServerErrorException(HttpStatus.BAD_REQUEST);
-                if(oldBestGame.get().getWhiteRating() < gameDTO.getWhitePlayer().getRating()) {
-                    gameReview.get().setBestGameURL(gameDTO.getGameURL().toString());
-                    gameReview.get().setBestGameDate(gameDTO.getGameTimestamp());
-                }
-            } else if(Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "loss") ||
-                    Objects.equals(gameDTO.getWhitePlayer().getGameResult(), "checkmated")) {
-                gameReview.get().setLossCasesRecord(gameReview.get().getLossCasesRecord() + 1);
-            } else gameReview.get().setDrawCasesRecord(gameReview.get().getDrawCasesRecord() + 1);
-        } else {
-            if(Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "win")) {
-                gameReview.get().setWinCasesRecord(gameReview.get().getWinCasesRecord() + 1);
-                Optional<Game> oldBestGame = gameRepository.findGameByGameURL(gameReview.get().getBestGameURL());
-                if(oldBestGame.isEmpty())
-                    throw new HttpServerErrorException(HttpStatus.BAD_REQUEST);
-                if(oldBestGame.get().getBlackRating() < gameDTO.getBlackPlayer().getRating()) {
-                    gameReview.get().setBestGameURL(gameDTO.getGameURL().toString());
-                    gameReview.get().setBestGameDate(Timestamp.valueOf(gameDTO.getGameData()));
-                }
-            } else if(Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "loss") ||
-                    Objects.equals(gameDTO.getBlackPlayer().getGameResult(), "checkmated")) {
-                gameReview.get().setLossCasesRecord(gameReview.get().getLossCasesRecord() + 1);
-            } else gameReview.get().setDrawCasesRecord(gameReview.get().getDrawCasesRecord() + 1);
+            throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
+        String gameSide;
+        PlayerInGameDTO playerResults;
+        if(game.getWhitePlayer().getUsername().equals(username)) {
+            playerResults = game.getWhitePlayer();
+            gameSide = WHITE;
         }
-        return Optional.of(gameReviewDTOMapper.apply(gameReviewRepository.save(gameReview.get())));
+        else {
+            playerResults = game.getBlackPlayer();
+            gameSide = BLACK;
+        }
+        changePlayerReviewRecords(gameReview.get(), playerResults, DELETE);
+        Optional<Game> bestGame = findBestGame(game, player.get(), gameSide);
+        if(bestGame.isEmpty())
+            gameReviewRepository.delete(gameReview.get());
+        else {
+            gameReview.get().setBestGame(bestGame.get());
+            gameReviewRepository.save(gameReview.get());
+        }
     }
-
+    @Override
+    public Optional<Game> findBestGame(GameDTO gameDTO, Player player, String gameSide) {
+        if(gameSide.equals(WHITE))
+            return player.getGames().stream()
+                    .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
+                    .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))
+                    .max(Comparator.comparingInt(Game::getWhiteRating));
+        else
+            return player.getGames().stream()
+                    .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
+                    .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))
+                    .max(Comparator.comparingInt(Game::getBlackRating));
+    }
     @Override
     public List<GameReviewDTO> viewPlayerStatistics(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
@@ -124,11 +154,11 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                 .stream().map(gameReviewDTOMapper).collect(Collectors.toList())).orElseGet(List::of);
     }
     @Override
-    public Optional<GameReviewDTO> findGameReview(String gameType, String username) {
+    public Optional<GameReview> findGameReview(String gameType, String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        return player.flatMap(value -> gameReviewRepository
-                .findGameReviewByGameTypeAndUser(gameType, value)
-                .map(gameReviewDTOMapper));
+        return player.flatMap(value -> value.getGameReviews().stream()
+                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType))
+                .findAny());
     }
 
     @Override
@@ -136,68 +166,11 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         if(player.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        Optional<GameReview> gameReview = gameReviewRepository.findGameReviewByGameTypeAndUser(timeClass, player.get());
+        Optional<GameReview> gameReview = findGameReview(timeClass, username);
         gameReview.ifPresent(gameReviewRepository::delete);
     }
     @Override
     public void deleteAllReviews() {
         gameReviewRepository.deleteAll();
-    }
-    @Override
-    public Optional<GameReviewDTO> updateTimeClassReviewByDeletingGame(GameDTO game, String username) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        Optional<GameReview> updatedGameReview = gameReviewRepository.findGameReviewByGameTypeAndUser(game.getTimeClass(), player.get());
-        if(updatedGameReview.isEmpty())
-            return Optional.empty();
-        PlayerInGameDTO playerResults;
-        String playerSide;
-        if(Objects.equals(game.getWhitePlayer().getUsername(), username)) {
-            playerResults = PlayerInGameDTO.builder()
-                    .gameResult(game.getWhitePlayer().getGameResult())
-                    .rating(game.getWhitePlayer().getRating())
-                    .username(username)
-                    .build();
-            playerSide = "white";
-        }
-        else {
-            playerResults = PlayerInGameDTO.builder()
-                    .gameResult(game.getBlackPlayer().getGameResult())
-                    .rating(game.getBlackPlayer().getRating())
-                    .username(username)
-                    .build();
-            playerSide = "black";
-        }
-        if(Objects.equals(playerResults.getGameResult(), "win")) {
-            updatedGameReview.get().setWinCasesRecord(updatedGameReview.get().getWinCasesRecord() - 1);
-        }
-        if(Objects.equals(playerResults.getGameResult(), "loss") ||
-                Objects.equals(playerResults.getGameResult(), "checkmated")) {
-            updatedGameReview.get().setLossCasesRecord(updatedGameReview.get().getLossCasesRecord() - 1);
-        }
-        if(Objects.equals(playerResults.getGameResult(), "draw")) {
-            updatedGameReview.get().setDrawCasesRecord(updatedGameReview.get().getDrawCasesRecord() - 1);
-        }
-        if(updatedGameReview.get().getBestGameURL().equals(game.getGameURL().toString())) {
-            Optional<Game> gameRes;
-            if(playerSide.equals("black"))
-                gameRes = player.get().getGames().stream().max(Comparator.comparingInt(Game::getBlackRating));
-            else gameRes = player.get().getGames().stream().max(Comparator.comparingInt(Game::getWhiteRating));
-            if(gameRes.isEmpty()) {
-                Optional<GameReview> gameRev = player.get()
-                        .getGameReviews().stream().parallel()
-                        .filter(gameReview -> gameReview.getGameType().equals(game.getTimeClass()))
-                        .findAny();
-                if(gameRev.isEmpty())
-                    throw new HttpServerErrorException(HttpStatus.CONFLICT);
-                player.get().getGameReviews().remove(gameRev.get());
-                gameReviewRepository.delete(gameRev.get());
-                return Optional.empty();
-            }
-            updatedGameReview.get().setBestGameDate(gameRes.get().getData());
-            updatedGameReview.get().setBestGameURL(gameRes.get().getGameURL());
-        }
-        return Optional.of(gameReviewDTOMapper.apply(gameReviewRepository.save(updatedGameReview.get())));
     }
 }

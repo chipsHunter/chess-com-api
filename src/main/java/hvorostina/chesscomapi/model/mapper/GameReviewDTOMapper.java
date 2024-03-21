@@ -19,9 +19,9 @@ public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> 
     public GameReviewDTO apply(GameReview gameReview) {
         try {
             return GameReviewDTO.builder()
-                    .gameType(gameReview.getGameType())
-                    .bestGameDate(LocalDateTime.ofInstant(gameReview.getBestGameDate().toInstant(), ZoneId.of("UTC+03:00")))
-                    .bestGameURL((new URI(gameReview.getBestGameURL())).toURL())
+                    .timeClass(gameReview.getBestGame().getTimeClass())
+                    .bestGameDate(LocalDateTime.ofInstant(gameReview.getBestGame().getData().toInstant(), ZoneId.of("UTC+03:00")))
+                    .bestGameURL((new URI(gameReview.getBestGame().getGameURL())).toURL())
                     .winCasesRecord(gameReview.getWinCasesRecord())
                     .lossCasesRecord(gameReview.getLossCasesRecord())
                     .drawCasesRecord(gameReview.getDrawCasesRecord())

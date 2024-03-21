@@ -13,19 +13,16 @@ public class GameReview {
             sequenceName = "general_sequence",
             initialValue = 1, allocationSize = 10)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "review_sequence_generator")
+    @Column(name = "game_review_id")
     Integer gameReviewID;
-    @Column(nullable = false)
-    String gameType;
-    @Column(nullable = false)
-    Timestamp bestGameDate;
-    @Column(nullable = false)
-    String bestGameURL;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer winCasesRecord;
+    Integer winCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer lossCasesRecord;
+    Integer lossCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer drawCasesRecord;
+    Integer drawCasesRecord = 0;
     @ManyToOne
     Player user;
+    @ManyToOne
+    Game bestGame;
 }

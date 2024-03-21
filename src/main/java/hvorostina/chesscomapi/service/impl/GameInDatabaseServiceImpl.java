@@ -30,27 +30,15 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     @Override
     public Optional<GameDTO> addGame(GameDTO game) {
-        if(gameRepository.findGameByUUID(game.getUuid()).isPresent())
+        if(gameRepository.findGameByUuid(game.getUuid()).isPresent())
+            return Optional.empty();
+        List<Player> players = getPlayersOrEmptyList(game);
+        if(players.isEmpty() || players.get(0) == null || players.get(1) == null)
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
         newGame.setData(game.getGameTimestamp());
         newGame.setUuid(game.getUuid());
-        List<Player> players = new ArrayList<>();
-        Optional<Player> whitePlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getWhitePlayer()
-                        .getUsername());
-        if(whitePlayer.isEmpty())
-            return Optional.empty();
-        players.add(0, whitePlayer.get());
-        Optional<Player> blackPlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getBlackPlayer()
-                        .getUsername());
-        if(blackPlayer.isEmpty())
-            return Optional.empty();
-        players.add(1, blackPlayer.get());
         newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
         newGame.setBlackRating(game.getBlackPlayer().getRating());
@@ -65,62 +53,66 @@ public class GameInDatabaseServiceImpl implements GameService {
         newGame.setTimeClass(game.getTimeClass());
         return Optional.of(gameDTOMapper.apply(gameRepository.save(newGame)));
     }
+    public List<Player> getPlayersOrEmptyList(GameDTO game) {
+        List<Player> players = new ArrayList<>();
+        if(game.getWhitePlayer() == null)
+            players.add(0, null);
+         else {
+            Optional<Player> whitePlayer = playerRepository
+                    .findPlayerByUsername(game
+                            .getWhitePlayer()
+                            .getUsername());
+            if (whitePlayer.isEmpty())
+                return List.of();
+            players.add(0, whitePlayer.get());
+        }
+         if(game.getBlackPlayer() == null)
+             players.add(1, null);
+        else {
+             Optional<Player> blackPlayer = playerRepository
+                     .findPlayerByUsername(game
+                             .getBlackPlayer()
+                             .getUsername());
+             if (blackPlayer.isEmpty())
+                 return List.of();
+             players.add(1, blackPlayer.get());
+         }
+        return players;
+    }
 
     @Override
     public Optional<GameDTO> updateGameResult(GameDTO gameParams) {
-        Optional<Game> updatedGame =  gameRepository.findGameByUUID(gameParams.getUuid());
+        Optional<Game> updatedGame =  gameRepository.findGameByUuid(gameParams.getUuid());
         if(updatedGame.isEmpty())
             return Optional.empty();
         if(gameParams.getGameTimestamp() != null)
             updatedGame.get().setData(gameParams.getGameTimestamp());
-        if(gameParams.getTimeClass() != null)
-            updatedGame.get().setTimeClass(gameParams.getTimeClass());
         if(gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL().toString());
-        if(gameParams.getBlackPlayer() != null) {
-            PlayerInGameDTO blackPlayer = gameParams.getBlackPlayer();
-            Optional<Player> newBlackPlayer = playerRepository.findPlayerByUsername(blackPlayer.getUsername());
-            if(newBlackPlayer.isEmpty())
-                return Optional.empty();
-            if(Objects.equals(blackPlayer.getGameResult(), "win")) {
-                updatedGame.get().setWinnerSide("black");
-                updatedGame.get().setGameResult(gameParams.getWhitePlayer().getGameResult());
-            }
-            updatedGame.get().setBlackRating(blackPlayer.getRating());
-            updatedGame.get().getPlayers().set(1, newBlackPlayer.get());
-        }
-        if(gameParams.getWhitePlayer() != null) {
-            PlayerInGameDTO whitePlayer = gameParams.getWhitePlayer();
-            Optional<Player> newWhitePlayer = playerRepository.findPlayerByUsername(whitePlayer.getUsername());
-            if(newWhitePlayer.isEmpty())
-                return Optional.empty();
-            if(Objects.equals(whitePlayer.getGameResult(), "win")) {
-                updatedGame.get().setWinnerSide("white");
-                updatedGame.get().setGameResult(gameParams.getBlackPlayer().getGameResult());
-            }
-            updatedGame.get().setWhiteRating(whitePlayer.getRating());
-            updatedGame.get().getPlayers().set(1, newWhitePlayer.get());
-        }
-        return Optional.of(gameDTOMapper.apply(updatedGame.get()));
+        return Optional.of(gameDTOMapper.apply(gameRepository.save(updatedGame.get())));
     }
 
     @Override
     public List<GameDTO> findAllGames() {
         return gameRepository.findAll()
                 .stream().map(gameDTOMapper)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public Optional<GameDTO> findGameByUUID(String uuid) {
         return gameRepository
-                .findGameByUUID(uuid)
+                .findGameByUuid(uuid)
                 .map(gameDTOMapper);
+    }
+    @Override
+    public void deleteAllGames() {
+        gameRepository.deleteAll();
     }
 
     @Override
     public void deleteGame(String uuid) {
-        Optional<Game> game = gameRepository.findGameByUUID(uuid);
+        Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         gameRepository.delete(game.get());

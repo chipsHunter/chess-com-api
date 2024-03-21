@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.controller.database;
 
+import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
@@ -25,18 +26,10 @@ public class DatabaseGameController {
     private final PlayerService playerService;
     @PostMapping("/add")
     public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO gameDTO) {
-        if(playerService.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername()).isEmpty() ||
-            playerService.findPlayerByUsername(gameDTO.getBlackPlayer().getUsername()).isEmpty())
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         Optional<GameDTO> addedGame = gameService.addGame(gameDTO);
         if(addedGame.isEmpty())
             return new ResponseEntity<>(gameDTO, HttpStatus.FOUND);
-        if(gameReviewService.findGameReview(gameDTO.getTimeClass(), addedGame.get().getWhitePlayer().getUsername()).isEmpty())
-            gameReviewService.createTimeClassReview(gameDTO, addedGame.get().getWhitePlayer().getUsername());
-        else gameReviewService.updateTimeClassReviewWithGame(gameDTO, addedGame.get().getWhitePlayer().getUsername());
-        if(gameReviewService.findGameReview(gameDTO.getTimeClass(), addedGame.get().getBlackPlayer().getUsername()).isEmpty())
-            gameReviewService.createTimeClassReview(gameDTO, addedGame.get().getBlackPlayer().getUsername());
-        else gameReviewService.updateTimeClassReviewWithGame(gameDTO, addedGame.get().getBlackPlayer().getUsername());
+        gameReviewService.manageGameReviewForNewGame(gameDTO);
         return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
     }
     @GetMapping("/find")
@@ -62,13 +55,19 @@ public class DatabaseGameController {
             Optional<GameDTO> gameDTO = gameService.findGameByUUID(uuid);
             if(gameDTO.isEmpty())
                 return HttpStatus.BAD_REQUEST;
-            gameService.deleteGame(uuid);
             gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getWhitePlayer().getUsername());
             gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getBlackPlayer().getUsername());
+            gameService.deleteGame(uuid);
             return HttpStatus.OK;
         }
         catch (HttpClientErrorException exception) {
             return exception.getStatusCode();
         }
+    }
+    @DeleteMapping("/delete_all")
+    public HttpStatus deleteAllGames() {
+        gameReviewService.deleteAllReviews();
+        gameService.deleteAllGames();
+        return HttpStatus.OK;
     }
 }

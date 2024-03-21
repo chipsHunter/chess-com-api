@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class GameReviewDTO {
-    String gameType;
+    String timeClass;
     LocalDateTime bestGameDate;
     URL bestGameURL;
     int winCasesRecord;

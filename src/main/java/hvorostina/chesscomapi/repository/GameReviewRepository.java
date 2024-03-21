@@ -8,6 +8,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GameReviewRepository extends JpaRepository<GameReview, Integer> {
-    Optional<GameReview> findGameReviewByGameTypeAndUser(String gameType, Player player);
     List<GameReview> findAllByUser(Player user);
 }
