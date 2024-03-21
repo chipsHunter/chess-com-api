@@ -29,14 +29,14 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
-    private static final String checkmated = "checkmated";
-    private static final String win = "win";
-    private static final String loss = "loss";
-    private static final String draw = "draw";
-    private static final String white = "white";
-    private static final String black = "black";
-    private static final int add = 1;
-    private static final int delete = -1;
+    private static final String CHECKMATED = "CHECKMATED";
+    private static final String WIN = "WIN";
+    private static final String LOSS = "LOSS";
+    private static final String DRAW = "DRAW";
+    private static final String WHITE = "WHITE";
+    private static final String BLACK = "BLACK";
+    private static final int ADD = 1;
+    private static final int DELETE = -1;
     @Override
     public void manageGameReviewForNewGame(GameDTO gameDTO) {
         Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername());
@@ -70,7 +70,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         GameReview gameReview = new GameReview();
         gameReview.setBestGame(game.get());
         gameReview.setUser(player);
-        changePlayerReviewRecords(gameReview, playerResults, add);
+        changePlayerReviewRecords(gameReview, playerResults, ADD);
         gameReviewRepository.save(gameReview);
     }
     @Override
@@ -82,15 +82,15 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         PlayerInGameDTO playerResults;
         if(game.getWhitePlayer().getUsername().equals(player.getUsername())) {
             playerResults = game.getWhitePlayer();
-            gameSide = white;
+            gameSide = WHITE;
         }
         else {
             playerResults = game.getBlackPlayer();
-            gameSide = black;
+            gameSide = BLACK;
         }
-        changePlayerReviewRecords(gameReview, playerResults, add);
-        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(white) ||
-                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(black))
+        changePlayerReviewRecords(gameReview, playerResults, ADD);
+        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(WHITE) ||
+                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(BLACK))
             gameReview.setBestGame(addedGame.get());
         gameReviewRepository.save(gameReview);
     }
@@ -98,12 +98,12 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     public void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO playerResults, int calledMethod) {
         if(calledMethod < -1 || calledMethod > 1)
             throw new UnsupportedOperationException();
-        if(Objects.equals(playerResults.getGameResult(), win))
+        if(Objects.equals(playerResults.getGameResult(), WIN))
             gameReview.setWinCasesRecord(gameReview.getWinCasesRecord() + calledMethod);
-        if(Objects.equals(playerResults.getGameResult(), loss) ||
-                Objects.equals(playerResults.getGameResult(), checkmated))
+        if(Objects.equals(playerResults.getGameResult(), LOSS) ||
+                Objects.equals(playerResults.getGameResult(), CHECKMATED))
             gameReview.setLossCasesRecord(gameReview.getLossCasesRecord() + calledMethod);
-        if(Objects.equals(playerResults.getGameResult(), draw))
+        if(Objects.equals(playerResults.getGameResult(), DRAW))
             gameReview.setDrawCasesRecord(gameReview.getDrawCasesRecord() + calledMethod);
     }
     @Override
@@ -118,13 +118,13 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         PlayerInGameDTO playerResults;
         if(game.getWhitePlayer().getUsername().equals(username)) {
             playerResults = game.getWhitePlayer();
-            gameSide = white;
+            gameSide = WHITE;
         }
         else {
             playerResults = game.getBlackPlayer();
-            gameSide = black;
+            gameSide = BLACK;
         }
-        changePlayerReviewRecords(gameReview.get(), playerResults, delete);
+        changePlayerReviewRecords(gameReview.get(), playerResults, DELETE);
         Optional<Game> bestGame = findBestGame(game, player.get(), gameSide);
         if(bestGame.isEmpty())
             gameReviewRepository.delete(gameReview.get());
@@ -135,7 +135,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     }
     @Override
     public Optional<Game> findBestGame(GameDTO gameDTO, Player player, String gameSide) {
-        if(gameSide.equals(white))
+        if(gameSide.equals(WHITE))
             return player.getGames().stream()
                     .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
                     .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))

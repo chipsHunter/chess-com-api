@@ -1,9 +1,6 @@
 package hvorostina.chesscomapi.controller.database;
 
-import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameReviewDTO;
-import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
 import hvorostina.chesscomapi.service.PlayerService;
@@ -23,7 +20,6 @@ import java.util.Optional;
 public class DatabaseGameController {
     private final GameService gameService;
     private final GameReviewService gameReviewService;
-    private final PlayerService playerService;
     @PostMapping("/add")
     public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO gameDTO) {
         Optional<GameDTO> addedGame = gameService.addGame(gameDTO);
