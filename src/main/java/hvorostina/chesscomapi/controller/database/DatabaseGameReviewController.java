@@ -21,7 +21,7 @@ public class DatabaseGameReviewController {
     List<GameReviewDTO> checkPlayerStatistics(@RequestParam String username) {
         if(playerRepository.findPlayerByUsername(username).isEmpty())
             return List.of();
-        return gameReviewService.viewPlayerStatistics(username);
+        return gameReviewService.viewPlayerStatistics(username).orElse(List.of());
     }
     @PatchMapping("/patch")
     public ResponseEntity<String> patchPlayerStatistics(@RequestBody GameDTO game) {

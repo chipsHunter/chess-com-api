@@ -21,7 +21,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -30,14 +29,14 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
-    private final String CHECKMATED = "checkmated";
-    private final String WIN = "win";
-    private final String LOSS = "loss";
-    private final String DRAW = "draw";
-    private final String WHITE = "white";
-    private final String BLACK = "black";
-    private final int ADD = 1;
-    private final int DELETE = -1;
+    private static final String checkmated = "checkmated";
+    private static final String win = "win";
+    private static final String loss = "loss";
+    private static final String draw = "draw";
+    private static final String white = "white";
+    private static final String black = "black";
+    private static final int add = 1;
+    private static final int delete = -1;
     @Override
     public void manageGameReviewForNewGame(GameDTO gameDTO) {
         Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername());
@@ -71,7 +70,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         GameReview gameReview = new GameReview();
         gameReview.setBestGame(game.get());
         gameReview.setUser(player);
-        changePlayerReviewRecords(gameReview, playerResults, ADD);
+        changePlayerReviewRecords(gameReview, playerResults, add);
         gameReviewRepository.save(gameReview);
     }
     @Override
@@ -83,15 +82,15 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         PlayerInGameDTO playerResults;
         if(game.getWhitePlayer().getUsername().equals(player.getUsername())) {
             playerResults = game.getWhitePlayer();
-            gameSide = WHITE;
+            gameSide = white;
         }
         else {
             playerResults = game.getBlackPlayer();
-            gameSide = BLACK;
+            gameSide = black;
         }
-        changePlayerReviewRecords(gameReview, playerResults, ADD);
-        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(WHITE) ||
-                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(BLACK))
+        changePlayerReviewRecords(gameReview, playerResults, add);
+        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(white) ||
+                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(black))
             gameReview.setBestGame(addedGame.get());
         gameReviewRepository.save(gameReview);
     }
@@ -99,12 +98,12 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     public void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO playerResults, int calledMethod) {
         if(calledMethod < -1 || calledMethod > 1)
             throw new UnsupportedOperationException();
-        if(Objects.equals(playerResults.getGameResult(), WIN))
+        if(Objects.equals(playerResults.getGameResult(), win))
             gameReview.setWinCasesRecord(gameReview.getWinCasesRecord() + calledMethod);
-        if(Objects.equals(playerResults.getGameResult(), LOSS) ||
-                Objects.equals(playerResults.getGameResult(), CHECKMATED))
+        if(Objects.equals(playerResults.getGameResult(), loss) ||
+                Objects.equals(playerResults.getGameResult(), checkmated))
             gameReview.setLossCasesRecord(gameReview.getLossCasesRecord() + calledMethod);
-        if(Objects.equals(playerResults.getGameResult(), DRAW))
+        if(Objects.equals(playerResults.getGameResult(), draw))
             gameReview.setDrawCasesRecord(gameReview.getDrawCasesRecord() + calledMethod);
     }
     @Override
@@ -119,13 +118,13 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         PlayerInGameDTO playerResults;
         if(game.getWhitePlayer().getUsername().equals(username)) {
             playerResults = game.getWhitePlayer();
-            gameSide = WHITE;
+            gameSide = white;
         }
         else {
             playerResults = game.getBlackPlayer();
-            gameSide = BLACK;
+            gameSide = black;
         }
-        changePlayerReviewRecords(gameReview.get(), playerResults, DELETE);
+        changePlayerReviewRecords(gameReview.get(), playerResults, delete);
         Optional<Game> bestGame = findBestGame(game, player.get(), gameSide);
         if(bestGame.isEmpty())
             gameReviewRepository.delete(gameReview.get());
@@ -136,7 +135,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     }
     @Override
     public Optional<Game> findBestGame(GameDTO gameDTO, Player player, String gameSide) {
-        if(gameSide.equals(WHITE))
+        if(gameSide.equals(white))
             return player.getGames().stream()
                     .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
                     .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))
@@ -148,10 +147,10 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                     .max(Comparator.comparingInt(Game::getBlackRating));
     }
     @Override
-    public List<GameReviewDTO> viewPlayerStatistics(String username) {
+    public Optional<List<GameReviewDTO>> viewPlayerStatistics(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         return player.map(value -> gameReviewRepository.findAllByUser(value)
-                .stream().map(gameReviewDTOMapper).collect(Collectors.toList())).orElseGet(List::of);
+                .stream().map(gameReviewDTOMapper).toList());
     }
     @Override
     public Optional<GameReview> findGameReview(String gameType, String username) {
