@@ -4,6 +4,7 @@ import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,7 +25,7 @@ public class DatabaseGameController {
     public ResponseEntity<GameDTOWithZonedTimeDate> addGame(@RequestBody GameDTO gameDTO) {
         Optional<GameDTOWithZonedTimeDate> addedGame = gameService.addGame(gameDTO);
         if(addedGame.isEmpty())
-            return new ResponseEntity<>(null, HttpStatus.FOUND);
+            return ResponseEntity.status(HttpStatus.FOUND).body(null);
         gameReviewService.manageGameReviewForNewGame(addedGame.get());
         return new ResponseEntity<>(addedGame.get(), HttpStatus.CREATED);
     }
@@ -33,13 +34,13 @@ public class DatabaseGameController {
         Optional<GameDTOWithZonedTimeDate> foundGame = gameService.findGameByUUID(uuid);
         return foundGame.map(gameDTO ->
                 new ResponseEntity<>(gameDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @PatchMapping("/update")
     public ResponseEntity<GameDTOWithZonedTimeDate> updateGame(@RequestBody GameDTO gameDTO) {
         Optional<GameDTOWithZonedTimeDate> updateGame = gameService.updateGameResult(gameDTO);
         return updateGame.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @GetMapping("/find_all")
     public List<GameDTOWithZonedTimeDate> findAllGames() {
