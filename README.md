@@ -41,6 +41,8 @@ This is a service entity used for evaluating player skills. You're <b>not allowe
 ### Stack of technologies used:  
 * Maven
 * Spring Web
+* JPA (Hibernate)
+* PostgeSQL
 *********************************
 
 ### SonarCloud Results  
