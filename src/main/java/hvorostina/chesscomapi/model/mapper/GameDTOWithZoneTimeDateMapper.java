@@ -1,7 +1,6 @@
 package hvorostina.chesscomapi.model.mapper;
 
 import hvorostina.chesscomapi.model.Game;
-import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,10 +13,6 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.SignStyle;
-import java.time.temporal.ChronoField;
 import java.util.function.Function;
 
 @AllArgsConstructor

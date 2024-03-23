@@ -3,8 +3,6 @@ package hvorostina.chesscomapi.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
