@@ -1,7 +1,4 @@
-<h1 style="text-align: center">REST Web-service w Chess.com</h1>  
-
-*********************************
-<h3 style="text-align: center">This project is a <i>REST</i> Web-service uses <a style = "text-decoration: underline" href = "https://www.chess.com/news/view/published-data-api">open Chess.com API</a>. </h3>
+<h1 style="text-align: center">REST Web-service using Chess.com</h1>  
 
 *********************************
 ### Idea of project
