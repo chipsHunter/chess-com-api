@@ -3,8 +3,8 @@ package hvorostina.chesscomapi.service.impl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
-import hvorostina.chesscomapi.model.mapper.GameDTOMapper;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.mapper.GameDTOWithZoneTimeDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
@@ -18,18 +18,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @lombok.Data
 @Service
 @Transactional
 public class GameInDatabaseServiceImpl implements GameService {
-    private final GameDTOMapper gameDTOMapper;
+    private final GameDTOWithZoneTimeDateMapper gameDTOWithZoneTimeDateMapper;
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
     @Override
-    public Optional<GameDTO> addGame(GameDTO game) {
+    public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if(gameRepository.findGameByUuid(game.getUuid()).isPresent())
             return Optional.empty();
         List<Player> players = getPlayersOrEmptyList(game);
@@ -37,7 +36,7 @@ public class GameInDatabaseServiceImpl implements GameService {
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
-        newGame.setData(game.getGameTimestamp());
+        newGame.setTimestamp(game.getGameTimestamp());
         newGame.setUuid(game.getUuid());
         newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
@@ -51,59 +50,51 @@ public class GameInDatabaseServiceImpl implements GameService {
             newGame.setGameResult(game.getWhitePlayer().getGameResult());
         }
         newGame.setTimeClass(game.getTimeClass());
-        return Optional.of(gameDTOMapper.apply(gameRepository.save(newGame)));
+        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(newGame)));
     }
     public List<Player> getPlayersOrEmptyList(GameDTO game) {
         List<Player> players = new ArrayList<>();
-        if(game.getWhitePlayer() == null)
-            players.add(0, null);
-         else {
-            Optional<Player> whitePlayer = playerRepository
-                    .findPlayerByUsername(game
-                            .getWhitePlayer()
-                            .getUsername());
-            if (whitePlayer.isEmpty())
-                return List.of();
-            players.add(0, whitePlayer.get());
-        }
-         if(game.getBlackPlayer() == null)
-             players.add(1, null);
-        else {
-             Optional<Player> blackPlayer = playerRepository
-                     .findPlayerByUsername(game
-                             .getBlackPlayer()
-                             .getUsername());
-             if (blackPlayer.isEmpty())
-                 return List.of();
-             players.add(1, blackPlayer.get());
-         }
+        Optional<Player> whitePlayer = playerRepository
+                .findPlayerByUsername(game
+                        .getWhitePlayer()
+                        .getUsername());
+        if (whitePlayer.isEmpty())
+            return List.of();
+        players.add(0, whitePlayer.get());
+        Optional<Player> blackPlayer = playerRepository
+                .findPlayerByUsername(game
+                        .getBlackPlayer()
+                        .getUsername());
+        if (blackPlayer.isEmpty())
+            return List.of();
+        players.add(1, blackPlayer.get());
         return players;
     }
 
     @Override
-    public Optional<GameDTO> updateGameResult(GameDTO gameParams) {
+    public Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams) {
         Optional<Game> updatedGame =  gameRepository.findGameByUuid(gameParams.getUuid());
         if(updatedGame.isEmpty())
             return Optional.empty();
         if(gameParams.getGameTimestamp() != null)
-            updatedGame.get().setData(gameParams.getGameTimestamp());
+            updatedGame.get().setTimestamp(gameParams.getGameTimestamp());
         if(gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL().toString());
-        return Optional.of(gameDTOMapper.apply(gameRepository.save(updatedGame.get())));
+        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
     }
 
     @Override
-    public List<GameDTO> findAllGames() {
+    public List<GameDTOWithZonedTimeDate> findAllGames() {
         return gameRepository.findAll()
-                .stream().map(gameDTOMapper)
+                .stream().map(gameDTOWithZoneTimeDateMapper)
                 .toList();
     }
 
     @Override
-    public Optional<GameDTO> findGameByUUID(String uuid) {
+    public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
         return gameRepository
                 .findGameByUuid(uuid)
-                .map(gameDTOMapper);
+                .map(gameDTOWithZoneTimeDateMapper);
     }
     @Override
     public void deleteAllGames() {

@@ -1,15 +1,16 @@
 package hvorostina.chesscomapi.service;
 
 import hvorostina.chesscomapi.model.dto.GameDTO;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface GameService {
-    Optional<GameDTO> addGame(GameDTO game);
-    Optional<GameDTO> updateGameResult(GameDTO gameParams);
-    List<GameDTO> findAllGames();
-    Optional<GameDTO> findGameByUUID(String uuid);
+    Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game);
+    Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams);
+    List<GameDTOWithZonedTimeDate> findAllGames();
+    Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid);
     void deleteGame(String uuid);
     void deleteAllGames();
 }

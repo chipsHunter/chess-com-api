@@ -9,8 +9,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.function.Function;
 
 @Component
@@ -20,8 +22,11 @@ public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> 
         try {
             return GameReviewDTO.builder()
                     .timeClass(gameReview.getBestGame().getTimeClass())
-                    .bestGameDate(LocalDateTime.ofInstant(gameReview.getBestGame().getData().toInstant(), ZoneId.of("UTC+03:00")))
                     .bestGameURL((new URI(gameReview.getBestGame().getGameURL())).toURL())
+                    .bestGameUuid(gameReview.getBestGame().getUuid())
+                    .bestGameDate(ZonedDateTime.ofInstant(
+                            Instant.ofEpochSecond(gameReview.getBestGame().getTimestamp()),
+                            ZoneId.of("UTC+03:00")))
                     .winCasesRecord(gameReview.getWinCasesRecord())
                     .lossCasesRecord(gameReview.getLossCasesRecord())
                     .drawCasesRecord(gameReview.getDrawCasesRecord())

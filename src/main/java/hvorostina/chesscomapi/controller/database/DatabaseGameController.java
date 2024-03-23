@@ -1,6 +1,7 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.dto.GameDTO;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
 import hvorostina.chesscomapi.service.PlayerService;
@@ -21,34 +22,34 @@ public class DatabaseGameController {
     private final GameService gameService;
     private final GameReviewService gameReviewService;
     @PostMapping("/add")
-    public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO gameDTO) {
-        Optional<GameDTO> addedGame = gameService.addGame(gameDTO);
+    public ResponseEntity<GameDTOWithZonedTimeDate> addGame(@RequestBody GameDTO gameDTO) {
+        Optional<GameDTOWithZonedTimeDate> addedGame = gameService.addGame(gameDTO);
         if(addedGame.isEmpty())
-            return new ResponseEntity<>(gameDTO, HttpStatus.FOUND);
-        gameReviewService.manageGameReviewForNewGame(gameDTO);
-        return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
+            return new ResponseEntity<>(null, HttpStatus.FOUND);
+        gameReviewService.manageGameReviewForNewGame(addedGame.get());
+        return new ResponseEntity<>(addedGame.get(), HttpStatus.CREATED);
     }
     @GetMapping("/find")
-    public ResponseEntity<GameDTO> findGameByUUID(@RequestParam String uuid) {
-        Optional<GameDTO> foundGame = gameService.findGameByUUID(uuid);
+    public ResponseEntity<GameDTOWithZonedTimeDate> findGameByUUID(@RequestParam String uuid) {
+        Optional<GameDTOWithZonedTimeDate> foundGame = gameService.findGameByUUID(uuid);
         return foundGame.map(gameDTO ->
                 new ResponseEntity<>(gameDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
     @PatchMapping("/update")
-    public ResponseEntity<GameDTO> updateGame(@RequestBody GameDTO gameDTO) {
-        Optional<GameDTO> updateGame = gameService.updateGameResult(gameDTO);
+    public ResponseEntity<GameDTOWithZonedTimeDate> updateGame(@RequestBody GameDTO gameDTO) {
+        Optional<GameDTOWithZonedTimeDate> updateGame = gameService.updateGameResult(gameDTO);
         return updateGame.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
     @GetMapping("/find_all")
-    public List<GameDTO> findAllGames() {
+    public List<GameDTOWithZonedTimeDate> findAllGames() {
         return gameService.findAllGames();
     }
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(@RequestParam String uuid) {
         try {
-            Optional<GameDTO> gameDTO = gameService.findGameByUUID(uuid);
+            Optional<GameDTOWithZonedTimeDate> gameDTO = gameService.findGameByUUID(uuid);
             if(gameDTO.isEmpty())
                 return HttpStatus.BAD_REQUEST;
             gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO.get(), gameDTO.get().getWhitePlayer().getUsername());

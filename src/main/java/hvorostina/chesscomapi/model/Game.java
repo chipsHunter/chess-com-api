@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -22,7 +23,7 @@ public class Game {
     @Column(name = "time_class", nullable = false)
     String timeClass;
     @Column(name = "data", nullable = false)
-    Timestamp data;
+    Long timestamp;
     @Column(name = "winner_side", nullable = false, columnDefinition = "varchar(255) default 'nobody'")
     String winnerSide;
     @Column(name = "white_rating", nullable = false, columnDefinition = "integer default 0")

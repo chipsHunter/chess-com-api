@@ -3,7 +3,7 @@ package hvorostina.chesscomapi.service.impl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
-import hvorostina.chesscomapi.model.dto.GameDTO;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameReviewDTOMapper;
@@ -29,44 +29,44 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
-    private static final String CHECKMATED = "CHECKMATED";
-    private static final String WIN = "WIN";
-    private static final String LOSS = "LOSS";
-    private static final String DRAW = "DRAW";
-    private static final String WHITE = "WHITE";
-    private static final String BLACK = "BLACK";
+    private static final String CHECKMATED = "checkmated";
+    private static final String WIN = "win";
+    private static final String LOSS = "loss";
+    private static final String DRAW = "draw";
+    private static final String WHITE = "white";
+    private static final String BLACK = "black";
     private static final int ADD = 1;
     private static final int DELETE = -1;
     @Override
-    public void manageGameReviewForNewGame(GameDTO gameDTO) {
-        Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTO.getWhitePlayer().getUsername());
+    public void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate) {
+        Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTOWithZonedTimeDate.getWhitePlayer().getUsername());
         if(whitePlayer.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        Optional<Player> blackPlayer = playerRepository.findPlayerByUsername(gameDTO.getBlackPlayer().getUsername());
+        Optional<Player> blackPlayer = playerRepository.findPlayerByUsername(gameDTOWithZonedTimeDate.getBlackPlayer().getUsername());
         if(blackPlayer.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         Optional<GameReview> existingGameReview = gameReviewRepository
                 .findAllByUser(whitePlayer.get()).stream()
-                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTO.getTimeClass()))
+                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
                 .findAny();
         if(existingGameReview.isEmpty()) {
-            createTimeClassReview(gameDTO, whitePlayer.get());
-            createTimeClassReview(gameDTO, blackPlayer.get());
+            createTimeClassReview(gameDTOWithZonedTimeDate, whitePlayer.get());
+            createTimeClassReview(gameDTOWithZonedTimeDate, blackPlayer.get());
         } else {
-            updateTimeClassReviewByAddingGame(existingGameReview.get(), gameDTO, whitePlayer.get());
-            updateTimeClassReviewByAddingGame(existingGameReview.get(), gameDTO, blackPlayer.get());
+            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, whitePlayer.get());
+            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, blackPlayer.get());
         }
     }
     @Override
-    public void createTimeClassReview(GameDTO gameDTO, Player player) {
-        Optional<Game> game = gameRepository.findGameByUuid(gameDTO.getUuid());
+    public void createTimeClassReview(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
+        Optional<Game> game = gameRepository.findGameByUuid(gameDTOWithZonedTimeDate.getUuid());
         if(game.isEmpty())
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         PlayerInGameDTO playerResults;
-        if(gameDTO.getWhitePlayer().getUsername().equals(player.getUsername()))
-            playerResults = gameDTO.getWhitePlayer();
+        if(gameDTOWithZonedTimeDate.getWhitePlayer().getUsername().equals(player.getUsername()))
+            playerResults = gameDTOWithZonedTimeDate.getWhitePlayer();
         else
-            playerResults = gameDTO.getBlackPlayer();
+            playerResults = gameDTOWithZonedTimeDate.getBlackPlayer();
         GameReview gameReview = new GameReview();
         gameReview.setBestGame(game.get());
         gameReview.setUser(player);
@@ -74,25 +74,31 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         gameReviewRepository.save(gameReview);
     }
     @Override
-    public void updateTimeClassReviewByAddingGame(GameReview gameReview, GameDTO game, Player player) {
-        Optional<Game> addedGame = gameRepository.findGameByUuid(game.getUuid());
+    public void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
+        Optional<Game> addedGame = gameRepository.findGameByUuid(gameDTOWithZonedTimeDate.getUuid());
         if(addedGame.isEmpty())
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        Optional<GameReview> existingGameReview = gameReviewRepository
+                .findAllByUser(player).stream()
+                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
+                .findAny();
+        if(existingGameReview.isEmpty())
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         String gameSide;
         PlayerInGameDTO playerResults;
-        if(game.getWhitePlayer().getUsername().equals(player.getUsername())) {
-            playerResults = game.getWhitePlayer();
+        if(gameDTOWithZonedTimeDate.getWhitePlayer().getUsername().equals(player.getUsername())) {
+            playerResults = gameDTOWithZonedTimeDate.getWhitePlayer();
             gameSide = WHITE;
         }
         else {
-            playerResults = game.getBlackPlayer();
+            playerResults = gameDTOWithZonedTimeDate.getBlackPlayer();
             gameSide = BLACK;
         }
-        changePlayerReviewRecords(gameReview, playerResults, ADD);
-        if(gameReview.getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(WHITE) ||
-                gameReview.getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(BLACK))
-            gameReview.setBestGame(addedGame.get());
-        gameReviewRepository.save(gameReview);
+        changePlayerReviewRecords(existingGameReview.get(), playerResults, ADD);
+        if(existingGameReview.get().getBestGame().getWhiteRating() < playerResults.getRating() && gameSide.equals(WHITE) ||
+                existingGameReview.get().getBestGame().getBlackRating() < playerResults.getRating() && gameSide.equals(BLACK))
+            existingGameReview.get().setBestGame(addedGame.get());
+        gameReviewRepository.save(existingGameReview.get());
     }
     @Override
     public void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO playerResults, int calledMethod) {
@@ -107,7 +113,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
             gameReview.setDrawCasesRecord(gameReview.getDrawCasesRecord() + calledMethod);
     }
     @Override
-    public void updateTimeClassReviewByDeletingGame(GameDTO game, String username) {
+    public void updateTimeClassReviewByDeletingGame(GameDTOWithZonedTimeDate game, String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         if(player.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
@@ -134,16 +140,16 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         }
     }
     @Override
-    public Optional<Game> findBestGame(GameDTO gameDTO, Player player, String gameSide) {
+    public Optional<Game> findBestGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player, String gameSide) {
         if(gameSide.equals(WHITE))
             return player.getGames().stream()
-                    .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
-                    .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))
+                    .filter(game -> game.getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
+                    .filter(game -> !Objects.equals(game.getUuid(), gameDTOWithZonedTimeDate.getUuid()))
                     .max(Comparator.comparingInt(Game::getWhiteRating));
         else
             return player.getGames().stream()
-                    .filter(game -> game.getTimeClass().equals(gameDTO.getTimeClass()))
-                    .filter(game -> !Objects.equals(game.getUuid(), gameDTO.getUuid()))
+                    .filter(game -> game.getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
+                    .filter(game -> !Objects.equals(game.getUuid(), gameDTOWithZonedTimeDate.getUuid()))
                     .max(Comparator.comparingInt(Game::getBlackRating));
     }
     @Override

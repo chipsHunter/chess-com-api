@@ -4,14 +4,15 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.net.URL;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
 public class GameReviewDTO {
     String timeClass;
-    LocalDateTime bestGameDate;
     URL bestGameURL;
+    String bestGameUuid;
+    ZonedDateTime bestGameDate;
     int winCasesRecord;
     int lossCasesRecord;
     int drawCasesRecord;

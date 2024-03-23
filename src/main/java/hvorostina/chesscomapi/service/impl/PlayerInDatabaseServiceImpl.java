@@ -13,7 +13,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -51,11 +50,13 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
             return Optional.empty();
 
         Player updatedPlayer = playerInDatabase.get();
-        updatedPlayer.setStatus(player.getStatus());
-        updatedPlayer.setCountry(player.getCountry());
-        updatedPlayer.setUsername(player.getUsername());
+        if(player.getStatus() != null){
+            updatedPlayer.setStatus(player.getStatus());
+        }
+        if(player.getCountry() != null){
+            updatedPlayer.setCountry(player.getCountry());
+        }
         playerDatabaseRepository.save(updatedPlayer);
-
         return Optional.of(player);
     }
     @Override

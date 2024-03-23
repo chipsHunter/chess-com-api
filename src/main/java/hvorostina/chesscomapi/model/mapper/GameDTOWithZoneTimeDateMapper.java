@@ -2,6 +2,7 @@ package hvorostina.chesscomapi.model.mapper;
 
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.dto.GameDTO;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -10,22 +11,28 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.util.function.Function;
 
 @AllArgsConstructor
 @Component
-public class GameDTOMapper implements Function<Game, GameDTO> {
+public class GameDTOWithZoneTimeDateMapper implements Function<Game, GameDTOWithZonedTimeDate> {
     private final PlayersInGameDTOMapper playersInGameDTOMapper;
     @Override
-    public GameDTO apply(Game game) {
+    public GameDTOWithZonedTimeDate apply(Game game) {
         try {
-            return GameDTO.builder()
+            return GameDTOWithZonedTimeDate.builder()
                     .gameURL((new URI(game.getGameURL())).toURL())
-                    .gameTimestamp(game.getData())
-                    .gameData(LocalDateTime.ofInstant(game.getData().toInstant(), ZoneId.of("UTC+03:00")))
                     .uuid(game.getUuid())
+                    .endGameTimeDate(ZonedDateTime.ofInstant(
+                            Instant.ofEpochSecond(game.getTimestamp()),
+                            ZoneId.of("UTC+03:00")))
                     .timeClass(game.getTimeClass())
                     .whitePlayer(playersInGameDTOMapper.apply(game).get(0))
                     .blackPlayer(playersInGameDTOMapper.apply(game).get(1))
