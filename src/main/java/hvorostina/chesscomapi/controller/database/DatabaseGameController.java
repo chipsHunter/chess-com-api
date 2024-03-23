@@ -4,7 +4,6 @@ import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
-import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -43,8 +42,8 @@ public class DatabaseGameController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @GetMapping("/find_all")
-    public List<GameDTOWithZonedTimeDate> findAllGames() {
-        return gameService.findAllGames();
+    public List<GameDTOWithZonedTimeDate> findAllGames(@RequestParam String username) {
+        return gameService.findAllGamesByUsername(username);
     }
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(@RequestParam String uuid) {
