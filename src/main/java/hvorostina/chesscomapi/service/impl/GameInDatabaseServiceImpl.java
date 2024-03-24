@@ -4,6 +4,7 @@ import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithZoneTimeDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
@@ -98,6 +99,25 @@ public class GameInDatabaseServiceImpl implements GameService {
         return gameRepository
                 .findGameByUuid(uuid)
                 .map(gameDTOWithZoneTimeDateMapper);
+    }
+    @Override
+    public Long getLongTimestampFromString(String rawData) {
+        if(rawData.length() == 10)
+            rawData = rawData + " 00:00:00";
+        if(rawData.length() == 16)
+            rawData = rawData + ":00";
+        //System.out.println(rawData);
+        return java.sql.Timestamp.valueOf(rawData).toInstant().toEpochMilli();
+    }
+    @Override
+    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(UserGamesInPeriodRequestDTO requestDTO) {
+        Optional<Player> player = playerRepository.findPlayerByUsername(requestDTO.getUsername());
+        if(player.isEmpty())
+                throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        return gameRepository.findGamesByPlayerInPeriod(player.get().getPlayerID(),
+                        getLongTimestampFromString(requestDTO.getStartData()),
+                        getLongTimestampFromString(requestDTO.getEndData()))
+                    .stream().map(gameDTOWithZoneTimeDateMapper).toList();
     }
     @Override
     public void deleteAllGames() {

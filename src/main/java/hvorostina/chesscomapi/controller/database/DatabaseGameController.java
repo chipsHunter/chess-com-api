@@ -2,6 +2,7 @@ package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,10 @@ public class DatabaseGameController {
         return foundGame.map(gameDTO ->
                 new ResponseEntity<>(gameDTO, HttpStatus.OK))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+    @GetMapping("/find_in_period")
+    public List<GameDTOWithZonedTimeDate> findGamesByPlayerInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
+        return gameService.findGamesByUserBetweenDates(requestDTO);
     }
     @PatchMapping("/update")
     public ResponseEntity<GameDTOWithZonedTimeDate> updateGame(@RequestBody GameDTO gameDTO) {
