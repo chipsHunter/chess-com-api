@@ -114,10 +114,11 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<Player> player = playerRepository.findPlayerByUsername(requestDTO.getUsername());
         if(player.isEmpty())
                 throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        return gameRepository.findGamesByPlayerInPeriod(player.get().getPlayerID(),
-                        getLongTimestampFromString(requestDTO.getStartData()),
-                        getLongTimestampFromString(requestDTO.getEndData()))
-                    .stream().map(gameDTOWithZoneTimeDateMapper).toList();
+        int id = player.get().getPlayerID();
+        Long startTimestamp = getLongTimestampFromString(requestDTO.getStartData());
+        Long endTimestamp = getLongTimestampFromString(requestDTO.getEndData());
+        List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, startTimestamp, endTimestamp);
+        return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
     }
     @Override
     public void deleteAllGames() {
