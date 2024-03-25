@@ -14,6 +14,7 @@ public class Game {
             sequenceName = "general_sequence",
             initialValue = 1, allocationSize = 10)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "game_sequence_generator")
+    @Column(name = "id", unique = true)
     Integer gameID;
     @Column(name = "game_url", nullable = false, unique = true)
     String gameURL;

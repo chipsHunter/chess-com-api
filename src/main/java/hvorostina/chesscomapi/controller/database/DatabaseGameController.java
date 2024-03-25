@@ -5,6 +5,7 @@ import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
+import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +24,7 @@ import java.util.Optional;
 public class DatabaseGameController {
     private final GameService gameService;
     private final GameReviewService gameReviewService;
+    private final PlayerService playerService;
     @PostMapping("/add")
     public ResponseEntity<GameDTOWithZonedTimeDate> addGame(@RequestBody GameDTO gameDTO) {
         Optional<GameDTOWithZonedTimeDate> addedGame = gameService.addGame(gameDTO);
@@ -37,8 +41,12 @@ public class DatabaseGameController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @GetMapping("/find_in_period")
-    public List<GameDTOWithZonedTimeDate> findGamesByPlayerInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
-        return gameService.findGamesByUserBetweenDates(requestDTO);
+    public List<GameDTOWithZonedTimeDate> findAllPlayerGamesInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
+        int playerID = playerService.getPlayerIdByUsername(requestDTO.getUsername());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime start = LocalDateTime.parse(requestDTO.getStartData(), formatter);
+        LocalDateTime end = LocalDateTime.parse(requestDTO.getEndData(), formatter);
+        return gameService.findGamesByUserBetweenDates(playerID, start, end);
     }
     @PatchMapping("/update")
     public ResponseEntity<GameDTOWithZonedTimeDate> updateGame(@RequestBody GameDTO gameDTO) {

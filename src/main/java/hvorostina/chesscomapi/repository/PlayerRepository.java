@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface PlayerRepository extends JpaRepository<Player, Integer> {
     Optional<Player> findPlayerByUsername(String username);
-    Optional<Player> findByPlayerID(Integer playerID);
+
 }

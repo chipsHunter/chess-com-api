@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 public class Player {
     @Id
-    @Column(nullable = false, unique = true)
-    Integer playerID;
+    @Column(name = "id", nullable = false, unique = true)
+    Integer id;
     @Column(nullable = false, unique = true)
     String username;
     @Column(nullable = false)

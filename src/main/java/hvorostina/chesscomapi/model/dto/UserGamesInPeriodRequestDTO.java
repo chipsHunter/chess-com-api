@@ -11,8 +11,8 @@ import lombok.Setter;
 public class UserGamesInPeriodRequestDTO {
     @JsonProperty("username")
     String username;
-    @JsonProperty("start data")
+    @JsonProperty("start_data")
     String startData;
-    @JsonProperty("end data")
+    @JsonProperty("end_data")
     String endData;
 }

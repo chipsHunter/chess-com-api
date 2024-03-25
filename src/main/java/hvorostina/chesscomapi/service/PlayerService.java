@@ -10,6 +10,8 @@ public interface PlayerService {
     List<PlayerDTO> findAllPlayers();
     Optional<PlayerDTO> addPlayer(Player player);
     Optional<PlayerDTO> findPlayerByUsername(String username);
-    public Optional<PlayerDTO> updatePlayer(PlayerDTO player);
+    Optional<PlayerDTO> updatePlayer(PlayerDTO player);
     void deletePlayerByUsername(String username);
+    int getPlayerIdByUsername(String username);
 }
+

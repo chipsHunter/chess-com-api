@@ -1,7 +1,11 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Player;
+import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
+import hvorostina.chesscomapi.repository.GameRepository;
+import hvorostina.chesscomapi.service.GameService;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,7 +15,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -32,7 +35,7 @@ public class DatabasePlayerController {
     @PostMapping("/add")
     public ResponseEntity<String> addUser(@RequestBody PlayerDTO playerDTO) {
         Player player = new Player();
-        player.setPlayerID(playerDTO.getPlayerID());
+        player.setId(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
         player.setCountry(playerDTO.getCountry());
         player.setUsername(playerDTO.getUsername());

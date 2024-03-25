@@ -4,7 +4,6 @@ import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
-import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithZoneTimeDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
@@ -104,8 +103,9 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(UserGamesInPeriodRequestDTO requestDTO) {
-        return null;
+    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
+        List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, start, end);
+        return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
     }
 
     @Override
