@@ -59,7 +59,6 @@ public class GameInDatabaseServiceImpl implements GameService {
                         .getWhitePlayer()
                         .getUsername().toLowerCase());
         if (whitePlayer.isEmpty()) {
-            System.out.println(game.getWhitePlayer().getUsername() + " in ZHOPA");
             return List.of();
         }
         players.add(0, whitePlayer.get());
@@ -68,7 +67,6 @@ public class GameInDatabaseServiceImpl implements GameService {
                         .getBlackPlayer()
                         .getUsername().toLowerCase());
         if (blackPlayer.isEmpty()) {
-            System.out.println(game.getBlackPlayer().getUsername() + " in ZHOPA");
             return List.of();
         }
         players.add(1, blackPlayer.get());
