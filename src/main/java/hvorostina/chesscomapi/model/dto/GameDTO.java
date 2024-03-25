@@ -17,7 +17,7 @@ public class GameDTO {
     @JsonProperty("uuid")
     String uuid;
     @JsonProperty("end_time")
-    Timestamp gameTimestamp;
+    Long gameTimestamp;
     @JsonProperty("time_class")
     String timeClass;
     @JsonProperty("white")

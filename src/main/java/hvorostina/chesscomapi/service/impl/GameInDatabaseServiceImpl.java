@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,7 +39,9 @@ public class GameInDatabaseServiceImpl implements GameService {
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
-        newGame.setTimestamp(game.getGameTimestamp().toInstant().toEpochMilli());
+        Instant instant = Instant.ofEpochSecond(game.getGameTimestamp());
+        LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+        newGame.setData(data);
         newGame.setUuid(game.getUuid());
         newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
@@ -78,8 +83,11 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<Game> updatedGame =  gameRepository.findGameByUuid(gameParams.getUuid());
         if(updatedGame.isEmpty())
             return Optional.empty();
-        if(gameParams.getGameTimestamp() != null)
-            updatedGame.get().setTimestamp(gameParams.getGameTimestamp().toInstant().toEpochMilli());
+        if(gameParams.getGameTimestamp() != null) {
+            Instant instant = Instant.ofEpochSecond(gameParams.getGameTimestamp());
+            LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+            updatedGame.get().setData(data);
+        }
         if(gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL().toString());
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
