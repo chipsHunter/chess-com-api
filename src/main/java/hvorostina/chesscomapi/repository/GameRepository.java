@@ -11,13 +11,9 @@ import java.util.Optional;
 public interface GameRepository extends JpaRepository<Game, Integer> {
     Optional<Game> findGameByUuid(String uuid);
     @Query(
-        value = "with find_user as (" +
-                    "select game_id from chess_matches cm " +
-                        "where cm.player_id = :id" +
-                ")" +
-                "select gm.* from game gm inner join find_user f " +
-                    "on gm.gameid = f.game_id where gm.data > :start and " +
-                        "gm.data < :end ;",
+        value = "select gm.* from game gm inner join chess_matches cm on cm.game_id=gm.gameid " +
+                "inner join player pl on cm.player_id = pl.playerid " +
+                "where cm.player_id = :id and gm.data > :start and gm.data < :end ",
         nativeQuery = true)
     List<Game> findGamesByPlayerInPeriod(@Param("id") int playerID, @Param("start") Long startTimestamp, @Param("end") Long endTimestamp);
 }
