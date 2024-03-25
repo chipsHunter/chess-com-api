@@ -18,14 +18,14 @@ import java.util.function.Function;
 public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> {
     @Override
     public GameReviewDTO apply(GameReview gameReview) {
+        ZoneId zoneId = ZoneId.of("Europe/Minsk");
+        ZonedDateTime actualDateTime = gameReview.getBestGame().getData().atZone(zoneId);
         try {
             return GameReviewDTO.builder()
                     .timeClass(gameReview.getBestGame().getTimeClass())
                     .bestGameURL((new URI(gameReview.getBestGame().getGameURL())).toURL())
                     .bestGameUuid(gameReview.getBestGame().getUuid())
-                    .bestGameDate(ZonedDateTime.ofInstant(
-                            Instant.ofEpochSecond(gameReview.getBestGame().getTimestamp()),
-                            ZoneId.of("UTC+03:00")))
+                    .bestGameDate(actualDateTime)
                     .winCasesRecord(gameReview.getWinCasesRecord())
                     .lossCasesRecord(gameReview.getLossCasesRecord())
                     .drawCasesRecord(gameReview.getDrawCasesRecord())

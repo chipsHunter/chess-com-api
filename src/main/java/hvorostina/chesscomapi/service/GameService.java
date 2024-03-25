@@ -12,7 +12,6 @@ public interface GameService {
     Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams);
     List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username);
     List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(UserGamesInPeriodRequestDTO requestDTO);
-    Long getLongTimestampFromString(String rawData);
     Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid);
     void deleteGame(String uuid);
     void deleteAllGames();

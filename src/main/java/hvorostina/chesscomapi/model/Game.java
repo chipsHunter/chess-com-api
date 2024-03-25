@@ -3,6 +3,7 @@ package hvorostina.chesscomapi.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -21,7 +22,7 @@ public class Game {
     @Column(name = "time_class", nullable = false)
     String timeClass;
     @Column(name = "data", nullable = false)
-    Long timestamp;
+    LocalDateTime data;
     @Column(name = "winner_side", nullable = false, columnDefinition = "varchar(255) default 'nobody'")
     String winnerSide;
     @Column(name = "white_rating", nullable = false, columnDefinition = "integer default 0")
@@ -30,7 +31,7 @@ public class Game {
     Integer blackRating;
     @Column(name = "game_result", nullable = false)
     String gameResult;
-    @ManyToMany     //target side
+    @ManyToMany
     @JoinTable(
             name = "chess_matches",
             joinColumns = @JoinColumn(name = "game_id"),

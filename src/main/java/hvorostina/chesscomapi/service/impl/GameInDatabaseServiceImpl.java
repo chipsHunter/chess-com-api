@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,23 +33,24 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
-        if(gameRepository.findGameByUuid(game.getUuid()).isPresent())
+        if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
             return Optional.empty();
         List<Player> players = getPlayersOrEmptyList(game);
-        if(players.isEmpty() || players.get(0) == null || players.get(1) == null)
+        if (players.isEmpty())
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
-        newGame.setTimestamp(game.getGameTimestamp());
+        Instant instant = Instant.ofEpochSecond(game.getGameTimestamp());
+        LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+        newGame.setData(data);
         newGame.setUuid(game.getUuid());
         newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
         newGame.setBlackRating(game.getBlackPlayer().getRating());
-        if(Objects.equals(game.getWhitePlayer().getGameResult(), "win")) {
+        if (Objects.equals(game.getWhitePlayer().getGameResult(), "win")) {
             newGame.setWinnerSide("white");
             newGame.setGameResult(game.getBlackPlayer().getGameResult());
-        }
-        else {
+        } else {
             newGame.setWinnerSide("black");
             newGame.setGameResult(game.getWhitePlayer().getGameResult());
         }
@@ -58,28 +62,33 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<Player> whitePlayer = playerRepository
                 .findPlayerByUsername(game
                         .getWhitePlayer()
-                        .getUsername());
-        if (whitePlayer.isEmpty())
+                        .getUsername().toLowerCase());
+        if (whitePlayer.isEmpty()) {
             return List.of();
+        }
         players.add(0, whitePlayer.get());
         Optional<Player> blackPlayer = playerRepository
                 .findPlayerByUsername(game
                         .getBlackPlayer()
-                        .getUsername());
-        if (blackPlayer.isEmpty())
+                        .getUsername().toLowerCase());
+        if (blackPlayer.isEmpty()) {
             return List.of();
+        }
         players.add(1, blackPlayer.get());
         return players;
     }
 
     @Override
     public Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams) {
-        Optional<Game> updatedGame =  gameRepository.findGameByUuid(gameParams.getUuid());
-        if(updatedGame.isEmpty())
+        Optional<Game> updatedGame = gameRepository.findGameByUuid(gameParams.getUuid());
+        if (updatedGame.isEmpty())
             return Optional.empty();
-        if(gameParams.getGameTimestamp() != null)
-            updatedGame.get().setTimestamp(gameParams.getGameTimestamp());
-        if(gameParams.getGameURL() != null)
+        if (gameParams.getGameTimestamp() != null) {
+            Instant instant = Instant.ofEpochSecond(gameParams.getGameTimestamp());
+            LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+            updatedGame.get().setData(data);
+        }
+        if (gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL().toString());
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
     }
@@ -95,31 +104,17 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
+    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(UserGamesInPeriodRequestDTO requestDTO) {
+        return null;
+    }
+
+    @Override
     public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
         return gameRepository
                 .findGameByUuid(uuid)
                 .map(gameDTOWithZoneTimeDateMapper);
     }
-    @Override
-    public Long getLongTimestampFromString(String rawData) {
-        if(rawData.length() == 10)
-            rawData = rawData + " 00:00:00";
-        if(rawData.length() == 16)
-            rawData = rawData + ":00";
-        //System.out.println(rawData);
-        return java.sql.Timestamp.valueOf(rawData).toInstant().toEpochMilli();
-    }
-    @Override
-    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(UserGamesInPeriodRequestDTO requestDTO) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(requestDTO.getUsername());
-        if(player.isEmpty())
-                throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        int id = player.get().getPlayerID();
-        Long startTimestamp = getLongTimestampFromString(requestDTO.getStartData());
-        Long endTimestamp = getLongTimestampFromString(requestDTO.getEndData());
-        List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, startTimestamp, endTimestamp);
-        return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
-    }
+
     @Override
     public void deleteAllGames() {
         gameRepository.deleteAll();
