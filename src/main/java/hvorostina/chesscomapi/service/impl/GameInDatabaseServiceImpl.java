@@ -32,11 +32,11 @@ public class GameInDatabaseServiceImpl implements GameService {
         if(gameRepository.findGameByUuid(game.getUuid()).isPresent())
             return Optional.empty();
         List<Player> players = getPlayersOrEmptyList(game);
-        if(players.isEmpty() || players.get(0) == null || players.get(1) == null)
+        if(players.isEmpty())
             return Optional.empty();
         Game newGame = new Game();
         newGame.setGameURL(game.getGameURL().toString());
-        newGame.setTimestamp(game.getGameTimestamp());
+        newGame.setTimestamp(game.getGameTimestamp().toInstant().toEpochMilli());
         newGame.setUuid(game.getUuid());
         newGame.setPlayers(players);
         newGame.setWhiteRating(game.getWhitePlayer().getRating());
@@ -57,16 +57,20 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<Player> whitePlayer = playerRepository
                 .findPlayerByUsername(game
                         .getWhitePlayer()
-                        .getUsername());
-        if (whitePlayer.isEmpty())
+                        .getUsername().toLowerCase());
+        if (whitePlayer.isEmpty()) {
+            System.out.println(game.getWhitePlayer().getUsername() + " in ZHOPA");
             return List.of();
+        }
         players.add(0, whitePlayer.get());
         Optional<Player> blackPlayer = playerRepository
                 .findPlayerByUsername(game
                         .getBlackPlayer()
-                        .getUsername());
-        if (blackPlayer.isEmpty())
+                        .getUsername().toLowerCase());
+        if (blackPlayer.isEmpty()) {
+            System.out.println(game.getBlackPlayer().getUsername() + " in ZHOPA");
             return List.of();
+        }
         players.add(1, blackPlayer.get());
         return players;
     }
@@ -77,7 +81,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         if(updatedGame.isEmpty())
             return Optional.empty();
         if(gameParams.getGameTimestamp() != null)
-            updatedGame.get().setTimestamp(gameParams.getGameTimestamp());
+            updatedGame.get().setTimestamp(gameParams.getGameTimestamp().toInstant().toEpochMilli());
         if(gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL().toString());
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));

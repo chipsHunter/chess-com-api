@@ -11,7 +11,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -24,7 +23,7 @@ public class DatabasePlayerController {
     }
     @GetMapping("/find")
     public ResponseEntity<String> findUserByUsername(@RequestParam String username) {
-        Optional<PlayerDTO> player = playerService.findPlayerByUsername(username);
+        Optional<PlayerDTO> player = playerService.findPlayerByUsername(username.toLowerCase());
         return player.map(playerDTO ->
                 new ResponseEntity<>(playerDTO.toString(), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>("Nothing was found!", HttpStatus.NOT_FOUND));
@@ -35,7 +34,7 @@ public class DatabasePlayerController {
         player.setPlayerID(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
         player.setCountry(playerDTO.getCountry());
-        player.setUsername(playerDTO.getUsername());
+        player.setUsername(playerDTO.getUsername().toLowerCase());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
             return new ResponseEntity<>("User already exists!", HttpStatus.NO_CONTENT);
@@ -50,7 +49,7 @@ public class DatabasePlayerController {
     @DeleteMapping("/delete")
     public HttpStatus deleteUser(@RequestParam String username) {
         try {
-            playerService.deletePlayerByUsername(username);
+            playerService.deletePlayerByUsername(username.toLowerCase());
         } catch (HttpClientErrorException exception) {
             return HttpStatus.BAD_REQUEST;
         }

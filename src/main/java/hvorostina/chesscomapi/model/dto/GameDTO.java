@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.net.URL;
+import java.sql.Timestamp;
 
 @Data
 @Builder
@@ -16,7 +17,7 @@ public class GameDTO {
     @JsonProperty("uuid")
     String uuid;
     @JsonProperty("end_time")
-    Long gameTimestamp;
+    Timestamp gameTimestamp;
     @JsonProperty("time_class")
     String timeClass;
     @JsonProperty("white")
