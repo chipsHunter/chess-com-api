@@ -36,7 +36,7 @@ public class DatabasePlayerController {
         player.setId(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
         player.setCountry(playerDTO.getCountry());
-        player.setUsername(playerDTO.getUsername());
+        player.setUsername(playerDTO.getUsername().toLowerCase());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
             return ResponseEntity.status(HttpStatus.FOUND).body(null);
