@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface GameReviewRepository extends JpaRepository<GameReview, Integer> {
     List<GameReview> findAllByUser(Player user);
+    void deleteAllByUser(Player player);
 }

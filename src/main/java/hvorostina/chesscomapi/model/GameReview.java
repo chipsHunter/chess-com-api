@@ -12,7 +12,7 @@ public class GameReview {
             initialValue = 1, allocationSize = 10)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "review_sequence_generator")
     @Column(name = "id")
-    Integer gameReviewID;
+    Integer id;
     @Column(nullable = false, columnDefinition = "integer default 0")
     Integer winCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")

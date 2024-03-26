@@ -1,17 +1,14 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Player;
-import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
-import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
-import hvorostina.chesscomapi.repository.GameRepository;
-import hvorostina.chesscomapi.service.GameService;
+import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,19 +18,20 @@ import java.util.Optional;
 @RequestMapping("/database/player")
 public class DatabasePlayerController {
     private final PlayerService playerService;
+    private final GameReviewService gameReviewService;
     @GetMapping("/find_all")
     public List<PlayerDTO> findAllUsers() {
         return playerService.findAllPlayers();
     }
     @GetMapping("/find")
-    public ResponseEntity<String> findUserByUsername(@RequestParam String username) {
+    public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username) {
         Optional<PlayerDTO> player = playerService.findPlayerByUsername(username);
         return player.map(playerDTO ->
-                new ResponseEntity<>(playerDTO.toString(), HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>("Nothing was found!", HttpStatus.NOT_FOUND));
+                new ResponseEntity<>(playerDTO, HttpStatus.OK))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @PostMapping("/add")
-    public ResponseEntity<String> addUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<PlayerDTO> addUser(@RequestBody PlayerDTO playerDTO) {
         Player player = new Player();
         player.setId(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
@@ -41,22 +39,22 @@ public class DatabasePlayerController {
         player.setUsername(playerDTO.getUsername());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
-            return new ResponseEntity<>("User already exists!", HttpStatus.NO_CONTENT);
-        return new ResponseEntity<>(playerDTO.toString(), HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.FOUND).body(null);
+        return new ResponseEntity<>(playerDTO, HttpStatus.CREATED);
     }
     @PatchMapping("/update")
-    public ResponseEntity<String> updateUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO) {
         Optional<PlayerDTO> result = playerService.updatePlayer(playerDTO);
-        return result.map(dto -> new ResponseEntity<>(dto.toString(), HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>("There's no user with username" + playerDTO.getUsername(), HttpStatus.NOT_FOUND));
+        return result.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     @DeleteMapping("/delete")
     public HttpStatus deleteUser(@RequestParam String username) {
-        try {
-            playerService.deletePlayerByUsername(username);
-        } catch (HttpClientErrorException exception) {
+        Optional<PlayerDTO> player = playerService.findPlayerByUsername(username);
+        if(player.isEmpty())
             return HttpStatus.BAD_REQUEST;
-        }
+        gameReviewService.deleteAllReviewsByUsername(username);
+        playerService.deletePlayerByUsername(username);
         return HttpStatus.OK;
     }
 }
