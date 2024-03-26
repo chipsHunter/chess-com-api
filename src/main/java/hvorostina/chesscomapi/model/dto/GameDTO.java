@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
     @JsonProperty("url")
-    URL gameURL;
+    String gameURL;
     @JsonProperty("uuid")
     String uuid;
     @JsonProperty("end_time")
