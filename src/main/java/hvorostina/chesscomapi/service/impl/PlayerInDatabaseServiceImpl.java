@@ -44,8 +44,8 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         return player.map(playerDTOMapper);
     }
     @Override
-    public Optional<PlayerDTO> updatePlayer(PlayerDTO player) {
-        Optional<Player> playerInDatabase = playerDatabaseRepository.findByPlayerID(player.getPlayerID());
+    public Optional<PlayerDTO> updatePlayer( PlayerDTO player) {
+        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(player.getUsername());
         if(playerInDatabase.isEmpty())
             return Optional.empty();
 
@@ -65,5 +65,12 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         if(playerInDatabase.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         playerDatabaseRepository.delete(playerInDatabase.get());
+    }
+    @Override
+    public int getPlayerIdByUsername(String username) {
+        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
+        if(playerInDatabase.isEmpty())
+            return 0;
+        return playerInDatabase.get().getId();
     }
 }

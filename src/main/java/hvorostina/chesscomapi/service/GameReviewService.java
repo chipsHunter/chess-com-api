@@ -17,6 +17,7 @@ public interface GameReviewService {
     Optional<List<GameReviewDTO>> viewPlayerStatistics(String username);
     Optional<GameReview> findGameReview(String gameType, String username);
     void deleteAllReviews();
+    void deleteAllReviewsByUsername(String username);
     void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO results, int calledMethod);
     void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate);
     public void deleteGameReviewForTimeClass(String timeClass, String username);

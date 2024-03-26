@@ -74,6 +74,13 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         gameReviewRepository.save(gameReview);
     }
     @Override
+    public void deleteAllReviewsByUsername(String username) {
+        Optional<Player> playerInDatabase = playerRepository.findPlayerByUsername(username);
+        if(playerInDatabase.isEmpty())
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        gameReviewRepository.deleteAllByUser(playerInDatabase.get());
+    }
+    @Override
     public void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
         Optional<Game> addedGame = gameRepository.findGameByUuid(gameDTOWithZonedTimeDate.getUuid());
         if(addedGame.isEmpty())

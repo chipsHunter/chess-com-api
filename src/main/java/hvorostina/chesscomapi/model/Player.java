@@ -9,21 +9,21 @@ import java.util.List;
 @Data
 public class Player {
     @Id
-    @Column(nullable = false, unique = true)
-    Integer playerID;
+    @Column(name = "id", nullable = false, unique = true)
+    Integer id;
     @Column(nullable = false, unique = true)
     String username;
     @Column(nullable = false)
     String country;
     @Column(nullable = false)
     String status;
-    @ManyToMany     //owning side
+    @ManyToMany
     @JoinTable(
             name = "chess_matches",
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
     List<Game> games;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    @OneToMany(cascade = {CascadeType.REMOVE, CascadeType.DETACH}, orphanRemoval = true, mappedBy = "user")
     List<GameReview> gameReviews;
 }

@@ -12,6 +12,8 @@ import java.util.function.Function;
 public class PlayersInGameDTOMapper implements Function <Game, List<PlayerInGameDTO>> {
     @Override
     public List<PlayerInGameDTO> apply(Game game) {
+        if(game.getPlayers() == null || game.getPlayers().isEmpty())
+            return List.of();
         List<PlayerInGameDTO> playersInGameDTO = new ArrayList<>();
         PlayerInGameDTO whitePlayer = PlayerInGameDTO.builder()
                 .username(game.getPlayers().get(0).getUsername())
