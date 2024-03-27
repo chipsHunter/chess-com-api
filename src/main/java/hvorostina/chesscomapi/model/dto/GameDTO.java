@@ -5,9 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
-import java.net.URL;
-import java.sql.Timestamp;
-
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
