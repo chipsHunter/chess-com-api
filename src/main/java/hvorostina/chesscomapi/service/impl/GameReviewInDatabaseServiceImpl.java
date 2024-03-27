@@ -170,9 +170,10 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     @Override
     public Optional<GameReview> findGameReview(String gameType, String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        return player.flatMap(value -> value.getGameReviews().stream()
-                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType))
-                .findAny());
+        if(player.isEmpty())
+            return Optional.empty();
+        List<GameReview> gameReviews = player.get().getGameReviews();
+        return gameReviews.stream().filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType)).findAny();
     }
 
     @Override

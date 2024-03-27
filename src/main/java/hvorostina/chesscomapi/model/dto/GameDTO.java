@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.net.URL;
+import java.sql.Timestamp;
 
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
     @JsonProperty("url")
-    URL gameURL;
+    String gameURL;
     @JsonProperty("uuid")
     String uuid;
     @JsonProperty("end_time")
