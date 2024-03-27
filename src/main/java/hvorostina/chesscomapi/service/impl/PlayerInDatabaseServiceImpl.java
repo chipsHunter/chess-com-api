@@ -48,7 +48,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
             player = Optional.of((Player) cache.getResponse(query));
         else {
             player = playerDatabaseRepository.findPlayerByUsername(username);
-            cache.addQuery(query, player.orElse(null));
+            cache.addQuery(query, player.map(playerDTOMapper));
         }
         return player.map(playerDTOMapper);
     }
@@ -67,7 +67,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         }
         String query = "Player " + player.getUsername();
         if(cache.containsQuery(query))
-            cache.updateResponse(query, updatedPlayer);
+            cache.updateResponse(query, playerDTOMapper.apply(updatedPlayer));
         playerDatabaseRepository.save(updatedPlayer);
         return Optional.of(player);
     }
