@@ -42,7 +42,14 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
 
     @Override
     public Optional<PlayerDTO> findPlayerByUsername(String username) {
-        Optional<Player> player = playerDatabaseRepository.findPlayerByUsername(username);
+        String query = "Player " + username;
+        Optional<Player> player;
+        if(cache.containsQuery(query))
+            player = Optional.of((Player) cache.getResponse(query));
+        else {
+            player = playerDatabaseRepository.findPlayerByUsername(username);
+            cache.addQuery(query, player.orElse(null));
+        }
         return player.map(playerDTOMapper);
     }
     @Override
@@ -58,6 +65,9 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         if(player.getCountry() != null){
             updatedPlayer.setCountry(player.getCountry());
         }
+        String query = "Player " + player.getUsername();
+        if(cache.containsQuery(query))
+            cache.updateResponse(query, updatedPlayer);
         playerDatabaseRepository.save(updatedPlayer);
         return Optional.of(player);
     }
@@ -66,13 +76,21 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        String playerQuery = "Player " + username;
+        if(cache.containsQuery(playerQuery))
+            cache.removeQuery(playerQuery);
         playerDatabaseRepository.delete(playerInDatabase.get());
     }
     @Override
     public int getPlayerIdByUsername(String username) {
+        String query = username + " ID";
+        if(cache.containsQuery(query))
+            return (int)cache.getResponse(query);
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
             return 0;
-        return playerInDatabase.get().getId();
+        int id = playerInDatabase.get().getId();
+        cache.addQuery(query, id);
+        return id;
     }
 }

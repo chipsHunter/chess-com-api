@@ -21,21 +21,16 @@ public class RequestCache {
     public void removeQuery(String query) {
         cache.remove(query);
     }
-    private boolean containsQuery(String query) {
+    public boolean containsQuery(String query) {
         return cache.containsKey(query);
     }
-    private Object addQuery(String query, Object response) {
+    public Object addQuery(String query, Object response) {
         cache.put(query, response);
         return response;
     }
-    private Object updateResponse(String query, Object response) {
+    public Object updateResponse(String query, Object response) {
         cache.replace(query, response);
         return response;
-    }
-    public Object saveOrUpdateResponse(String query, Object response) {
-        if(containsQuery(query))
-            return updateResponse(query, response);
-        else return addQuery(query, response);
     }
     public Object getResponse(String query) {
         if(!containsQuery(query))
