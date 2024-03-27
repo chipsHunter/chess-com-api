@@ -9,7 +9,7 @@ import java.util.Map;
 @Component
 public class RequestCache {
     private final HashMap<String, Object> cache;
-    private final static int MAX_SIZE = 20;
+    private static final int MAX_SIZE = 20;
     public RequestCache() {
         this.cache = new LinkedHashMap<>(MAX_SIZE) {
             @Override

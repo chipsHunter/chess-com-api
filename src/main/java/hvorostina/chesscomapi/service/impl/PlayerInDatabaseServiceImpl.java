@@ -22,7 +22,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
     private final RequestCache cache;
-    private final static String PLAYER_REQUEST = "Player ";
+    private static final String PLAYER_REQUEST = "Player ";
     @Override
     public List<PlayerDTO> findAllPlayers() {
         List<Player> players = playerDatabaseRepository.findAll();
