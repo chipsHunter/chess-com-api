@@ -22,6 +22,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
     private final RequestCache cache;
+    private final static String PLAYER_REQUEST = "Player ";
     @Override
     public List<PlayerDTO> findAllPlayers() {
         List<Player> players = playerDatabaseRepository.findAll();
@@ -42,7 +43,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
 
     @Override
     public Optional<PlayerDTO> findPlayerByUsername(String username) {
-        String query = "Player " + username;
+        String query = PLAYER_REQUEST + username;
         Optional<Player> player;
         if(cache.containsQuery(query))
             player = Optional.of((Player) cache.getResponse(query));
@@ -65,7 +66,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         if(player.getCountry() != null){
             updatedPlayer.setCountry(player.getCountry());
         }
-        String query = "Player " + player.getUsername();
+        String query = PLAYER_REQUEST + player.getUsername();
         if(cache.containsQuery(query))
             cache.updateResponse(query, playerDTOMapper.apply(updatedPlayer));
         playerDatabaseRepository.save(updatedPlayer);
@@ -76,7 +77,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        String playerQuery = "Player " + username;
+        String playerQuery = PLAYER_REQUEST + username;
         if(cache.containsQuery(playerQuery))
             cache.removeQuery(playerQuery);
         String playerReviewsQuery = username + " review";

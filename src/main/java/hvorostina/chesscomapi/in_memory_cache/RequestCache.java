@@ -9,7 +9,7 @@ import java.util.Map;
 @Component
 public class RequestCache {
     private final HashMap<String, Object> cache;
-    private final int MAX_SIZE = 20;
+    private final static int MAX_SIZE = 20;
     public RequestCache() {
         this.cache = new LinkedHashMap<>(MAX_SIZE) {
             @Override
@@ -24,13 +24,11 @@ public class RequestCache {
     public boolean containsQuery(String query) {
         return cache.containsKey(query);
     }
-    public Object addQuery(String query, Object response) {
+    public void addQuery(String query, Object response) {
         cache.put(query, response);
-        return response;
     }
-    public Object updateResponse(String query, Object response) {
+    public void updateResponse(String query, Object response) {
         cache.replace(query, response);
-        return response;
     }
     public Object getResponse(String query) {
         if(!containsQuery(query))

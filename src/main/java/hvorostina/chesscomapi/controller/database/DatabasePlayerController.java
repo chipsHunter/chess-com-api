@@ -1,7 +1,6 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Player;
-import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;

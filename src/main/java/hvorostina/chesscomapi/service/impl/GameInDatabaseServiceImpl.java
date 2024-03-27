@@ -33,6 +33,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
     private final RequestCache cache;
+    private final static String FIND_BY_UUID_REQUEST = "Game with uuid ";
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
@@ -92,7 +93,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         }
         if (gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL());
-        String playerQuery = "Game with uuid " + gameParams.getUuid();
+        String playerQuery = FIND_BY_UUID_REQUEST + gameParams.getUuid();
         if(cache.containsQuery(playerQuery))
             cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
@@ -116,7 +117,7 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
-        String gameQuery = "Game with uuid " + uuid;
+        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
         if(cache.containsQuery(gameQuery))
             return Optional.of((GameDTOWithZonedTimeDate) cache.getResponse(gameQuery));
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
@@ -136,7 +137,7 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public void deleteGame(String uuid) {
-        String gameQuery = "Game with uuid " + uuid;
+        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
         if(cache.containsQuery(gameQuery))
             cache.removeQuery(gameQuery);
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
