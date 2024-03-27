@@ -33,7 +33,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
     private final RequestCache cache;
-    private final static String FIND_BY_UUID_REQUEST = "Game with uuid ";
+    private static final String FIND_BY_UUID_REQUEST = "Game with uuid ";
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
