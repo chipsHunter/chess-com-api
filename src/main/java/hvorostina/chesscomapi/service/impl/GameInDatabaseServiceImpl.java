@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,6 +32,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
+    private final RequestCache cache;
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
@@ -38,7 +41,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         if (players.isEmpty())
             return Optional.empty();
         Game newGame = new Game();
-        newGame.setGameURL(game.getGameURL().toString());
+        newGame.setGameURL(game.getGameURL());
         Instant instant = Instant.ofEpochSecond(game.getGameTimestamp());
         LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
         newGame.setData(data);
@@ -88,7 +91,10 @@ public class GameInDatabaseServiceImpl implements GameService {
             updatedGame.get().setData(data);
         }
         if (gameParams.getGameURL() != null)
-            updatedGame.get().setGameURL(gameParams.getGameURL().toString());
+            updatedGame.get().setGameURL(gameParams.getGameURL());
+        String playerQuery = "Game with uuid " + gameParams.getUuid();
+        if(cache.containsQuery(playerQuery))
+            cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
     }
 
@@ -110,9 +116,17 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
-        return gameRepository
-                .findGameByUuid(uuid)
-                .map(gameDTOWithZoneTimeDateMapper);
+        String gameQuery = "Game with uuid " + uuid;
+        if(cache.containsQuery(gameQuery))
+            return Optional.of((GameDTOWithZonedTimeDate) cache.getResponse(gameQuery));
+        Optional<Game> game = gameRepository.findGameByUuid(uuid);
+        if(game.isEmpty())
+            return Optional.empty();
+        Optional<GameDTOWithZonedTimeDate> gameResult = game.map(gameDTOWithZoneTimeDateMapper);
+        if(gameResult.isEmpty())
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        cache.addQuery(gameQuery, gameResult.get());
+        return gameResult;
     }
 
     @Override
@@ -122,6 +136,9 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public void deleteGame(String uuid) {
+        String gameQuery = "Game with uuid " + uuid;
+        if(cache.containsQuery(gameQuery))
+            cache.removeQuery(gameQuery);
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
