@@ -79,6 +79,12 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         String playerQuery = "Player " + username;
         if(cache.containsQuery(playerQuery))
             cache.removeQuery(playerQuery);
+        String playerReviewsQuery = username + " review";
+        if(cache.containsQuery(playerReviewsQuery))
+            cache.removeQuery(playerReviewsQuery);
+        String playerIdQuery = username + " ID";
+        if(cache.containsQuery(playerIdQuery))
+            cache.removeQuery(playerIdQuery);
         playerDatabaseRepository.delete(playerInDatabase.get());
     }
     @Override

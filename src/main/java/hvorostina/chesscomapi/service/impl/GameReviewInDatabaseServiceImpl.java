@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -81,6 +78,9 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         if(playerInDatabase.isEmpty())
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         gameReviewRepository.deleteAllByUser(playerInDatabase.get());
+        String playerReviewsQuery = username + " review";
+        if(cache.containsQuery(playerReviewsQuery))
+            cache.removeQuery(playerReviewsQuery);
     }
     @Override
     public void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
@@ -162,10 +162,22 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                     .max(Comparator.comparingInt(Game::getBlackRating));
     }
     @Override
-    public Optional<List<GameReviewDTO>> viewPlayerStatistics(String username) {
+    public List<GameReviewDTO> viewPlayerStatistics(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        return player.map(value -> gameReviewRepository.findAllByUser(value)
-                .stream().map(gameReviewDTOMapper).toList());
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        String playerReviewsQuery = username + " review";
+        List<GameReviewDTO> reviews = new ArrayList<>();
+        if(cache.containsQuery(playerReviewsQuery)) {
+            for (Object o : (List) cache.getResponse(playerReviewsQuery)) {
+                reviews.add((GameReviewDTO)o);
+            }
+            return reviews;
+        }
+        List<GameReview> gameReviews = gameReviewRepository.findAllByUser(player.get());
+        reviews = gameReviews.stream().map(gameReviewDTOMapper).toList();
+        cache.addQuery(playerReviewsQuery, reviews);
+        return reviews;
     }
     @Override
     public Optional<GameReview> findGameReview(String gameType, String username) {

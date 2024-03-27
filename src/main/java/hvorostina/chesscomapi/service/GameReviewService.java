@@ -14,7 +14,7 @@ public interface GameReviewService {
     void createTimeClassReview(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player);
     void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player);
     void updateTimeClassReviewByDeletingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, String username);
-    Optional<List<GameReviewDTO>> viewPlayerStatistics(String username);
+    List<GameReviewDTO> viewPlayerStatistics(String username);
     Optional<GameReview> findGameReview(String gameType, String username);
     void deleteAllReviews();
     void deleteAllReviewsByUsername(String username);
