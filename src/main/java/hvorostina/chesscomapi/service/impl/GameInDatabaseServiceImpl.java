@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
@@ -30,6 +31,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
+    private final RequestCache cache;
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isPresent())

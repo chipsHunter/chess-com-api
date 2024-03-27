@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
@@ -29,6 +30,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
+    private final RequestCache cache;
     private static final String CHECKMATED = "checkmated";
     private static final String WIN = "win";
     private static final String LOSS = "loss";

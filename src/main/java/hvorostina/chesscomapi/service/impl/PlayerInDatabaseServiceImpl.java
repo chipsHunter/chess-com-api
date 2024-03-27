@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerDTOMapper;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
+    private final RequestCache cache;
     @Override
     public List<PlayerDTO> findAllPlayers() {
         List<Player> players = playerDatabaseRepository.findAll();
