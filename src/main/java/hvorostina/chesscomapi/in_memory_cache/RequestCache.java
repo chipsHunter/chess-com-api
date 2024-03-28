@@ -35,4 +35,7 @@ public class RequestCache {
             return null;
         return cache.get(query);
     }
+    public void clear() {
+        cache.clear();
+    }
 }

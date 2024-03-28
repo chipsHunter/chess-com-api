@@ -34,6 +34,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     private final RequestCache cache;
     private static final String FIND_BY_UUID_REQUEST = "Game with uuid ";
+    private static final String REVIEW_REQUEST = " review";
     @Override
     public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
@@ -58,6 +59,9 @@ public class GameInDatabaseServiceImpl implements GameService {
             newGame.setGameResult(game.getWhitePlayer().getGameResult());
         }
         newGame.setTimeClass(game.getTimeClass());
+        String query = game.getBlackPlayer().getUsername() + REVIEW_REQUEST;
+        if(cache.containsQuery(query))
+            cache.removeQuery(query);
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(newGame)));
     }
     public List<Player> getPlayersOrEmptyList(GameDTO game) {
@@ -101,6 +105,9 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username) {
+        Optional<Player> player = playerRepository.findPlayerByUsername(username);
+        if(player.isEmpty())
+            return List.of();
         return gameRepository.findAll()
                 .stream()
                 .filter(game -> game.getPlayers().get(0).getUsername().equals(username) ||
@@ -132,6 +139,7 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public void deleteAllGames() {
+        cache.clear();
         gameRepository.deleteAll();
     }
 
@@ -143,6 +151,14 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        String whiteUsername = game.get().getPlayers().get(0).getUsername();
+        String blackUsername = game.get().getPlayers().get(1).getUsername();
+        String whiteReviewsQuery = whiteUsername + REVIEW_REQUEST;
+        String blackReviewsQuery = blackUsername + REVIEW_REQUEST;
+        if(cache.containsQuery(whiteReviewsQuery))
+            cache.removeQuery(whiteReviewsQuery);
+        if(cache.containsQuery(blackReviewsQuery))
+            cache.removeQuery(blackReviewsQuery);
         gameRepository.delete(game.get());
     }
 }
