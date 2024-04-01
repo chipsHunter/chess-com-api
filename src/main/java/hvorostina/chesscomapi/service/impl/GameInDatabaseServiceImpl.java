@@ -94,8 +94,8 @@ public class GameInDatabaseServiceImpl implements GameService {
         if (gameParams.getGameURL() != null)
             updatedGame.get().setGameURL(gameParams.getGameURL());
         String playerQuery = FIND_BY_UUID_REQUEST + gameParams.getUuid();
-        if(cache.containsQuery(playerQuery))
-            cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
+        //if(cache.containsQuery(playerQuery))
+            //cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
         return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
     }
 
@@ -126,7 +126,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         Optional<GameDTOWithZonedTimeDate> gameResult = game.map(gameDTOWithZoneTimeDateMapper);
         if(gameResult.isEmpty())
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
-        cache.addQuery(gameQuery, gameResult.get());
+        cache.putQuery(gameQuery, gameResult.get());
         return gameResult;
     }
 

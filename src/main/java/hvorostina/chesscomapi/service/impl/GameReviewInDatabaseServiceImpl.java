@@ -176,7 +176,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         }
         List<GameReview> gameReviews = gameReviewRepository.findAllByUser(player.get());
         reviews = gameReviews.stream().map(gameReviewDTOMapper).toList();
-        cache.addQuery(playerReviewsQuery, reviews);
+        cache.putQuery(playerReviewsQuery, reviews);
         return reviews;
     }
     @Override

@@ -6,7 +6,11 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Player {
     @Id
     @Column(name = "id", nullable = false, unique = true)

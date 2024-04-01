@@ -7,13 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
-public class RequestCache {
-    private final HashMap<String, Object> cache;
+public class RequestCache<T> {
+    private final HashMap<String, T> cache;
     private final static int MAX_SIZE = 20;
     public RequestCache() {
-        this.cache = new LinkedHashMap<>(MAX_SIZE) {
+        this.cache = new LinkedHashMap<String, T>(MAX_SIZE) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry<String, Object> eldest) {
+            protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
                 return size() >= MAX_SIZE;
             }
         };
@@ -24,15 +24,10 @@ public class RequestCache {
     public boolean containsQuery(String query) {
         return cache.containsKey(query);
     }
-    public void addQuery(String query, Object response) {
-        cache.put(query, response);
+    public T putQuery(String query, T response) {
+        return cache.put(query, response);
     }
-    public void updateResponse(String query, Object response) {
-        cache.replace(query, response);
-    }
-    public Object getResponse(String query) {
-        if(!containsQuery(query))
-            return null;
+    public T getResponse(String query) {
         return cache.get(query);
     }
 }

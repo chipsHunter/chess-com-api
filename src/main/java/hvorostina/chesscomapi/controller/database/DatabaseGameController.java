@@ -42,7 +42,8 @@ public class DatabaseGameController {
     }
     @GetMapping("/find_in_period")
     public List<GameDTOWithZonedTimeDate> findAllPlayerGamesInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
-        int playerID = playerService.getPlayerIdByUsername(requestDTO.getUsername());
+        //int playerID = playerService.getPlayerIdByUsername(requestDTO.getUsername());
+        int playerID = 0;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime start = LocalDateTime.parse(requestDTO.getStartData(), formatter);
         LocalDateTime end = LocalDateTime.parse(requestDTO.getEndData(), formatter);

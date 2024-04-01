@@ -13,7 +13,7 @@ import java.net.URL;
 public class PlayerDTO {
     @Nullable
     @JsonProperty("player_id")
-    Integer playerID;
+    Integer id;
     @JsonProperty("username")
     String username;
     @JsonProperty("url")
