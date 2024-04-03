@@ -94,12 +94,12 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     public List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username) {
-        return gameRepository.findAll()
-                .stream()
-                .filter(game -> game.getPlayers().get(0).getUsername().equals(username) ||
-                        game.getPlayers().get(1).getUsername().equals(username))
-                .map(gameDTOWithZoneTimeDateMapper)
-                .toList();
+        Optional<Player> player = playerRepository.findPlayerByUsername(username);
+        if(player.isPresent()) {
+            List<Game> games = player.get().getGames();
+            return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
+        }
+        return List.of();
     }
 
     @Override
