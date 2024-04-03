@@ -14,12 +14,12 @@ public interface GameReviewService {
     void createTimeClassReview(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player);
     void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player);
     void updateTimeClassReviewByDeletingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, String username);
-    List<GameReviewDTO> viewPlayerStatistics(String username);
+    List<GameReviewDTO> viewPlayerStatistics(Player player);
     Optional<GameReview> findGameReview(String gameType, String username);
     void deleteAllReviews();
     void deleteAllReviewsByUsername(String username);
     void changePlayerReviewRecords(GameReview gameReview, PlayerInGameDTO results, int calledMethod);
-    void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate);
+    void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player);
     public void deleteGameReviewForTimeClass(String timeClass, String username);
     Optional<Game> findBestGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player, String gameSide);
 }

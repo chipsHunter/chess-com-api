@@ -1,6 +1,5 @@
 package hvorostina.chesscomapi.service.impl;
 
-import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
@@ -19,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.*;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -27,7 +27,6 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
-    private final RequestCache cache;
     private static final String CHECKMATED = "checkmated";
     private static final String WIN = "win";
     private static final String LOSS = "loss";
@@ -36,26 +35,19 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private static final String BLACK = "black";
     private static final int ADD = 1;
     private static final int DELETE = -1;
-    @Override
-    public void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate) {
-        Optional<Player> whitePlayer = playerRepository.findPlayerByUsername(gameDTOWithZonedTimeDate.getWhitePlayer().getUsername());
-        if(whitePlayer.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        Optional<Player> blackPlayer = playerRepository.findPlayerByUsername(gameDTOWithZonedTimeDate.getBlackPlayer().getUsername());
-        if(blackPlayer.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        Optional<GameReview> existingGameReview = gameReviewRepository
-                .findAllByUser(whitePlayer.get()).stream()
-                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
-                .findAny();
-        if(existingGameReview.isEmpty()) {
-            createTimeClassReview(gameDTOWithZonedTimeDate, whitePlayer.get());
-            createTimeClassReview(gameDTOWithZonedTimeDate, blackPlayer.get());
-        } else {
-            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, whitePlayer.get());
-            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, blackPlayer.get());
-        }
-    }
+//    @Override
+//    public void manageGameReviewForNewGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
+//        Optional<GameReview> review = player.getGameReviews().stream()
+//                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameDTOWithZonedTimeDate.getTimeClass()))
+//                .findAny();
+//        if(existingGameReview.isEmpty()) {
+//            createTimeClassReview(gameDTOWithZonedTimeDate, whitePlayer.get());
+//            createTimeClassReview(gameDTOWithZonedTimeDate, blackPlayer.get());
+//        } else {
+//            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, whitePlayer.get());
+//            updateTimeClassReviewByAddingGame(gameDTOWithZonedTimeDate, blackPlayer.get());
+//        }
+//    }
     @Override
     public void createTimeClassReview(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
         Optional<Game> game = gameRepository.findGameByUuid(gameDTOWithZonedTimeDate.getUuid());
@@ -162,18 +154,9 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                     .max(Comparator.comparingInt(Game::getBlackRating));
     }
     @Override
-    public List<GameReviewDTO> viewPlayerStatistics(String username) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        String playerReviewsQuery = username + " review";
+    public List<GameReviewDTO> viewPlayerStatistics(Player player) {
+        Player player = findPlayerByUsername(username);
         List<GameReviewDTO> reviews = new ArrayList<>();
-        if(cache.containsQuery(playerReviewsQuery)) {
-            for (Object o : (List) cache.getResponse(playerReviewsQuery)) {
-                reviews.add((GameReviewDTO)o);
-            }
-            return reviews;
-        }
         List<GameReview> gameReviews = gameReviewRepository.findAllByUser(player.get());
         reviews = gameReviews.stream().map(gameReviewDTOMapper).toList();
         cache.putQuery(playerReviewsQuery, reviews);
@@ -181,11 +164,13 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     }
     @Override
     public Optional<GameReview> findGameReview(String gameType, String username) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
-            return Optional.empty();
-        List<GameReview> gameReviews = player.get().getGameReviews();
-        return gameReviews.stream().filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType)).findAny();
+        Player player = findPlayerByUsername(username);
+        List<GameReview> gameReviews = player.getGameReviews();
+        Optional<GameReview> playerReviewWithTimeClass = gameReviews.stream()
+                .filter(gameReview ->
+                        gameReview.getBestGame().getTimeClass().equals(gameType))
+                .findAny();
+        return playerReviewWithTimeClass;
     }
 
     @Override

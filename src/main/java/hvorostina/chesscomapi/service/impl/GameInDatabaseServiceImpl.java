@@ -1,6 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
-import hvorostina.chesscomapi.in_memory_cache.RequestCache;
+import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
@@ -19,9 +19,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @lombok.Data
@@ -32,81 +30,51 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
-    private final RequestCache cache;
-    private static final String FIND_BY_UUID_REQUEST = "Game with uuid ";
+    private final RequestGamesCacheServiceImpl cacheService;
     @Override
-    public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
-        if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
-            return Optional.empty();
-        List<Player> players = getPlayersOrEmptyList(game);
-        if (players.isEmpty())
-            return Optional.empty();
-        Game newGame = new Game();
-        newGame.setGameURL(game.getGameURL());
-        Instant instant = Instant.ofEpochSecond(game.getGameTimestamp());
-        LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
-        newGame.setData(data);
-        newGame.setUuid(game.getUuid());
-        newGame.setPlayers(players);
-        newGame.setWhiteRating(game.getWhitePlayer().getRating());
-        newGame.setBlackRating(game.getBlackPlayer().getRating());
-        if (Objects.equals(game.getWhitePlayer().getGameResult(), "win")) {
-            newGame.setWinnerSide("white");
-            newGame.setGameResult(game.getBlackPlayer().getGameResult());
-        } else {
-            newGame.setWinnerSide("black");
-            newGame.setGameResult(game.getWhitePlayer().getGameResult());
-        }
-        newGame.setTimeClass(game.getTimeClass());
-        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(newGame)));
+    public GameDTOWithZonedTimeDate addGame(Game game) {
+        if (gameRepository.findGameByUuid(game.getUuid()).isEmpty())
+            gameRepository.save(game);
+        return gameDTOWithZoneTimeDateMapper.apply(game);
     }
-    public List<Player> getPlayersOrEmptyList(GameDTO game) {
-        List<Player> players = new ArrayList<>();
-        Optional<Player> whitePlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getWhitePlayer()
-                        .getUsername().toLowerCase());
-        if (whitePlayer.isEmpty()) {
-            return List.of();
-        }
-        players.add(0, whitePlayer.get());
-        Optional<Player> blackPlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getBlackPlayer()
-                        .getUsername().toLowerCase());
-        if (blackPlayer.isEmpty()) {
-            return List.of();
-        }
-        players.add(1, blackPlayer.get());
-        return players;
-    }
-
     @Override
-    public Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams) {
-        Optional<Game> updatedGame = gameRepository.findGameByUuid(gameParams.getUuid());
+    public GameDTOWithZonedTimeDate updateGameResult(GameDTO fields) {
+        Optional<Game> updatedGame = gameRepository.findGameByUuid(fields.getUuid());
         if (updatedGame.isEmpty())
-            return Optional.empty();
-        if (gameParams.getGameTimestamp() != null) {
-            Instant instant = Instant.ofEpochSecond(gameParams.getGameTimestamp());
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        setFieldsIfSpecified(updatedGame.get(), fields);
+        gameRepository.save(updatedGame.get());
+        GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate = gameDTOWithZoneTimeDateMapper.apply(updatedGame.get());
+        cacheService.saveOrUpdateByUuid(gameDTOWithZonedTimeDate);
+        return gameDTOWithZonedTimeDate;
+    }
+    private void setFieldsIfSpecified(Game updatedGame, GameDTO fields) {
+        setDataIfSpecified(updatedGame, fields);
+        setURLIfSpecified(updatedGame, fields);
+    }
+    private void setDataIfSpecified(Game updatedGame, GameDTO fields) {
+        if (fields.getGameTimestamp() != null) {
+            Instant instant = Instant.ofEpochSecond(fields.getGameTimestamp());
             LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
-            updatedGame.get().setData(data);
+            updatedGame.setData(data);
         }
-        if (gameParams.getGameURL() != null)
-            updatedGame.get().setGameURL(gameParams.getGameURL());
-        String playerQuery = FIND_BY_UUID_REQUEST + gameParams.getUuid();
-        //if(cache.containsQuery(playerQuery))
-            //cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
-        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
+    }
+    private void setURLIfSpecified(Game updatedGame, GameDTO fields) {
+        if (fields.getGameURL() != null)
+            updatedGame.setGameURL(fields.getGameURL());
     }
 
     @Override
     public List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username) {
-        return gameRepository.findAll()
-                .stream()
-                .filter(game -> game.getPlayers().get(0).getUsername().equals(username) ||
-                        game.getPlayers().get(1).getUsername().equals(username))
+        Optional<Player> player = playerRepository.findPlayerByUsername(username);
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        List<Game> playerGames = player.get().getGames();
+        List<GameDTOWithZonedTimeDate> playerGameDTOsForCache = playerGames.stream()
                 .map(gameDTOWithZoneTimeDateMapper)
                 .toList();
+        cacheService.saveByUser(username, playerGameDTOsForCache);
+        return playerGameDTOsForCache;
     }
 
     @Override
@@ -116,33 +84,30 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
-        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
-        if(cache.containsQuery(gameQuery))
-            return Optional.of((GameDTOWithZonedTimeDate) cache.getResponse(gameQuery));
+    public GameDTOWithZonedTimeDate findGameByUUID(String uuid) {
+        GameDTOWithZonedTimeDate gameInCache = cacheService.getByUuid(uuid);
+        if(gameInCache != null)
+            return gameInCache;
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
-            return Optional.empty();
-        Optional<GameDTOWithZonedTimeDate> gameResult = game.map(gameDTOWithZoneTimeDateMapper);
-        if(gameResult.isEmpty())
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
-        cache.putQuery(gameQuery, gameResult.get());
-        return gameResult;
+            throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
+        GameDTOWithZonedTimeDate gameDTO = gameDTOWithZoneTimeDateMapper.apply(game.get());
+        cacheService.saveOrUpdateByUuid(gameDTO);
+        return gameDTO;
     }
 
     @Override
     public void deleteAllGames() {
+        cacheService.deleteAll();
         gameRepository.deleteAll();
     }
 
     @Override
     public void deleteGame(String uuid) {
-        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
-        if(cache.containsQuery(gameQuery))
-            cache.removeQuery(gameQuery);
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        cacheService.deleteByUuid(uuid);
         gameRepository.delete(game.get());
     }
 }

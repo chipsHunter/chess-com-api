@@ -11,7 +11,7 @@ public class RequestCache<T> {
     private final HashMap<String, T> cache;
     private final static int MAX_SIZE = 20;
     public RequestCache() {
-        this.cache = new LinkedHashMap<String, T>(MAX_SIZE) {
+        this.cache = new LinkedHashMap<>(MAX_SIZE) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
                 return size() >= MAX_SIZE;
@@ -21,11 +21,17 @@ public class RequestCache<T> {
     public void removeQuery(String query) {
         cache.remove(query);
     }
+    public void clear() {
+        cache.clear();
+    }
     public boolean containsQuery(String query) {
         return cache.containsKey(query);
     }
-    public T putQuery(String query, T response) {
-        return cache.put(query, response);
+    public void putQuery(String query, T response) {
+        cache.put(query, response);
+    }
+    public void updateQuery(String query, T response) {
+        cache.replace(query, response);
     }
     public T getResponse(String query) {
         return cache.get(query);

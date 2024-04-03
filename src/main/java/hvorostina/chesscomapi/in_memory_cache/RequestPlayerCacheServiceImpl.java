@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 public class RequestPlayerCacheServiceImpl {
     private static final String PLAYER_REQUEST = "Player ";
     private final RequestCache<PlayerDTO> cache;
-    public void addOrUpdatePlayer(PlayerDTO player) {
+    public void saveOrUpdate(PlayerDTO player) {
         String query = PLAYER_REQUEST + player.getUsername();
         cache.putQuery(query, player);
     }
@@ -17,7 +17,7 @@ public class RequestPlayerCacheServiceImpl {
         String query = PLAYER_REQUEST + username;
         return cache.getResponse(query);
     }
-    public void deletePlayer(String username) {
+    public void delete(String username) {
         String playerQuery = PLAYER_REQUEST + username;
         cache.removeQuery(playerQuery);
     }
