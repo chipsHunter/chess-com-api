@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.in_memory_cache.RequestCache;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
@@ -14,14 +15,13 @@ import hvorostina.chesscomapi.service.GameReviewService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
+@Transactional
 @Service
 @AllArgsConstructor
 public class GameReviewInDatabaseServiceImpl implements GameReviewService {
@@ -29,6 +29,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewDTOMapper gameReviewDTOMapper;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
+    private final RequestCache cache;
     private static final String CHECKMATED = "checkmated";
     private static final String WIN = "win";
     private static final String LOSS = "loss";
@@ -79,6 +80,9 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         if(playerInDatabase.isEmpty())
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         gameReviewRepository.deleteAllByUser(playerInDatabase.get());
+        String playerReviewsQuery = username + " review";
+        if(cache.containsQuery(playerReviewsQuery))
+            cache.removeQuery(playerReviewsQuery);
     }
     @Override
     public void updateTimeClassReviewByAddingGame(GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate, Player player) {
@@ -160,17 +164,30 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                     .max(Comparator.comparingInt(Game::getBlackRating));
     }
     @Override
-    public Optional<List<GameReviewDTO>> viewPlayerStatistics(String username) {
+    public List<GameReviewDTO> viewPlayerStatistics(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        return player.map(value -> gameReviewRepository.findAllByUser(value)
-                .stream().map(gameReviewDTOMapper).toList());
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        String playerReviewsQuery = username + " review";
+        List<GameReviewDTO> reviews = new ArrayList<>();
+        if(cache.containsQuery(playerReviewsQuery)) {
+            for (Object o : (List) cache.getResponse(playerReviewsQuery)) {
+                reviews.add((GameReviewDTO)o);
+            }
+            return reviews;
+        }
+        List<GameReview> gameReviews = gameReviewRepository.findAllByUser(player.get());
+        reviews = gameReviews.stream().map(gameReviewDTOMapper).toList();
+        cache.addQuery(playerReviewsQuery, reviews);
+        return reviews;
     }
     @Override
     public Optional<GameReview> findGameReview(String gameType, String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        return player.flatMap(value -> value.getGameReviews().stream()
-                .filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType))
-                .findAny());
+        if(player.isEmpty())
+            return Optional.empty();
+        List<GameReview> gameReviews = player.get().getGameReviews();
+        return gameReviews.stream().filter(gameReview -> gameReview.getBestGame().getTimeClass().equals(gameType)).findAny();
     }
 
     @Override

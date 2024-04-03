@@ -5,14 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
-import java.net.URL;
-
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
     @JsonProperty("url")
-    URL gameURL;
+    String gameURL;
     @JsonProperty("uuid")
     String uuid;
     @JsonProperty("end_time")

@@ -56,7 +56,7 @@ public class DatabaseGameController {
     }
     @GetMapping("/find_all")
     public List<GameDTOWithZonedTimeDate> findAllGames(@RequestParam String username) {
-        return gameService.findAllGamesByUsername(username);
+        return gameService.findAllGamesByUsername(username.toLowerCase());
     }
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(@RequestParam String uuid) {

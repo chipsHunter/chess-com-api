@@ -1,7 +1,6 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Player;
-import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
@@ -36,7 +35,7 @@ public class DatabasePlayerController {
         player.setId(playerDTO.getPlayerID());
         player.setStatus(playerDTO.getStatus());
         player.setCountry(playerDTO.getCountry());
-        player.setUsername(playerDTO.getUsername());
+        player.setUsername(playerDTO.getUsername().toLowerCase());
         Optional<PlayerDTO> savedPlayer = playerService.addPlayer(player);
         if(savedPlayer.isEmpty())
             return ResponseEntity.status(HttpStatus.FOUND).body(null);
