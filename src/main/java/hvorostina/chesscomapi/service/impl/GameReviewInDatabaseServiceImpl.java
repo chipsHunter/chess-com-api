@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.*;
 
+@Transactional
 @Service
 @AllArgsConstructor
 public class GameReviewInDatabaseServiceImpl implements GameReviewService {

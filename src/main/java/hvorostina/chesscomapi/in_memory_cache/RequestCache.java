@@ -36,4 +36,7 @@ public class RequestCache<T> {
     public T getResponse(String query) {
         return cache.get(query);
     }
+    public void clear() {
+        cache.clear();
+    }
 }
