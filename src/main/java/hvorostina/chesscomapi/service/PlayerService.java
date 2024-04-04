@@ -2,16 +2,19 @@ package hvorostina.chesscomapi.service;
 
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PlayerService {
     List<PlayerDTO> findAllPlayers();
-    Optional<PlayerDTO> addPlayer(Player player);
-    Optional<PlayerDTO> findPlayerByUsername(String username);
-    Optional<PlayerDTO> updatePlayer(PlayerDTO player);
+    PlayerDTO addPlayer(Player player);
+    PlayerDTO findPlayerByUsernameAndSaveInCache(String username);
+    Player findPlayerEntityByUsername(String username);
+    PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields);
     void deletePlayerByUsername(String username);
-    int getPlayerIdByUsername(String username);
+    Integer getIdByUsername(String username);
+
+    List<PlayerWithGamesDTO> getAllPlayersWithGames();
 }
 

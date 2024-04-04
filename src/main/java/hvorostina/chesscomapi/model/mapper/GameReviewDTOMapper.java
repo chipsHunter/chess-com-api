@@ -21,7 +21,7 @@ public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> 
         ZonedDateTime actualDateTime = gameReview.getBestGame().getData().atZone(zoneId);
         try {
             return GameReviewDTO.builder()
-                    .timeClass(gameReview.getBestGame().getTimeClass())
+                    .timeClass(gameReview.getTimeClass())
                     .bestGameURL((new URI(gameReview.getBestGame().getGameURL())).toURL())
                     .bestGameUuid(gameReview.getBestGame().getUuid())
                     .bestGameDate(actualDateTime)

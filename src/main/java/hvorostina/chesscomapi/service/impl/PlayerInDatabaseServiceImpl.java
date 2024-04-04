@@ -1,9 +1,11 @@
 package hvorostina.chesscomapi.service.impl;
 
-import hvorostina.chesscomapi.in_memory_cache.RequestCache;
+import hvorostina.chesscomapi.in_memory_cache.RequestPlayerCacheServiceImpl;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerDTOMapper;
+import hvorostina.chesscomapi.model.mapper.PlayerWithGamesDTOMapper;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.Data;
@@ -21,8 +23,8 @@ import java.util.Optional;
 public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
-    private final RequestCache cache;
-    private static final String PLAYER_REQUEST = "Player ";
+    private final PlayerWithGamesDTOMapper playerWithGamesDTOMapper;
+    private final RequestPlayerCacheServiceImpl cache;
     @Override
     public List<PlayerDTO> findAllPlayers() {
         List<Player> players = playerDatabaseRepository.findAll();
@@ -30,74 +32,73 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
                 .map(playerDTOMapper)
                 .toList();
     }
-
     @Override
-    public Optional<PlayerDTO> addPlayer(Player player) {
-        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(player.getUsername());
-        if(playerInDatabase.isEmpty())
-            return Optional.of(playerDTOMapper
-                    .apply(playerDatabaseRepository
-                            .save(player)));
-        return Optional.empty();
+    public PlayerDTO addPlayer(Player player) {
+        Player addedPlayer = playerDatabaseRepository.save(player);
+        PlayerDTO playerDTOForCache = playerDTOMapper.apply(addedPlayer);
+        cache.saveOrUpdate(playerDTOForCache);
+        return playerDTOForCache;
+    }
+    @Override
+    public PlayerDTO findPlayerByUsernameAndSaveInCache(String username) {
+        PlayerDTO playerFromCache = cache.getByUsername(username);
+        if(playerFromCache != null)
+            return playerFromCache;
+        Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(username);
+        PlayerDTO playerToCache =  playerDTOMapper.apply(playerFromDatabase.orElseThrow(() ->
+                new HttpClientErrorException(HttpStatus.NOT_FOUND))
+        );
+        cache.saveOrUpdate(playerToCache);
+        return playerToCache;
+    }
+    @Override
+    public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
+        List<Player> players = playerDatabaseRepository.findAll();
+        return players.stream()
+                .map(playerWithGamesDTOMapper)
+                .toList();
+    }
+    @Override
+    public Player findPlayerEntityByUsername(String username) {
+        Optional<Player> player = playerDatabaseRepository.findPlayerByUsername(username);
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        return player.get();
     }
 
     @Override
-    public Optional<PlayerDTO> findPlayerByUsername(String username) {
-        String query = PLAYER_REQUEST + username;
-        Optional<Player> player;
-        if(cache.containsQuery(query))
-            player = Optional.of((Player) cache.getResponse(query));
-        else {
-            player = playerDatabaseRepository.findPlayerByUsername(username);
-            cache.addQuery(query, player.map(playerDTOMapper));
-        }
-        return player.map(playerDTOMapper);
+    public PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields) {
+        Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(fields.getUsername());
+        if(playerFromDatabase.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        Player actualPlayer = playerFromDatabase.get();
+        updatePlayerFields(actualPlayer, fields);
+        playerDatabaseRepository.save(actualPlayer);
+        PlayerDTO playerDTOToCache = playerDTOMapper.apply(actualPlayer);
+        cache.saveOrUpdate(playerDTOToCache);
+        return playerDTOToCache;
     }
-    @Override
-    public Optional<PlayerDTO> updatePlayer( PlayerDTO player) {
-        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(player.getUsername());
-        if(playerInDatabase.isEmpty())
-            return Optional.empty();
-
-        Player updatedPlayer = playerInDatabase.get();
-        if(player.getStatus() != null){
-            updatedPlayer.setStatus(player.getStatus());
+    private void updatePlayerFields(Player player, PlayerDTO fields) {
+        if(fields.getStatus() != null){
+            player.setStatus(fields.getStatus());
         }
-        if(player.getCountry() != null){
-            updatedPlayer.setCountry(player.getCountry());
+        if(fields.getCountry() != null){
+            player.setCountry(fields.getCountry());
         }
-        String query = PLAYER_REQUEST + player.getUsername();
-        if(cache.containsQuery(query))
-            cache.updateResponse(query, playerDTOMapper.apply(updatedPlayer));
-        playerDatabaseRepository.save(updatedPlayer);
-        return Optional.of(player);
     }
     @Override
     public void deletePlayerByUsername(String username) {
+        cache.delete(username);
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        String playerQuery = PLAYER_REQUEST + username;
-        if(cache.containsQuery(playerQuery))
-            cache.removeQuery(playerQuery);
-        String playerReviewsQuery = username + " review";
-        if(cache.containsQuery(playerReviewsQuery))
-            cache.removeQuery(playerReviewsQuery);
-        String playerIdQuery = username + " ID";
-        if(cache.containsQuery(playerIdQuery))
-            cache.removeQuery(playerIdQuery);
         playerDatabaseRepository.delete(playerInDatabase.get());
     }
     @Override
-    public int getPlayerIdByUsername(String username) {
-        String query = username + " ID";
-        if(cache.containsQuery(query))
-            return (int)cache.getResponse(query);
+    public Integer getIdByUsername(String username) {
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
-            return 0;
-        int id = playerInDatabase.get().getId();
-        cache.addQuery(query, id);
-        return id;
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        return playerInDatabase.get().getId();
     }
 }

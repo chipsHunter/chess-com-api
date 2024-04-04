@@ -1,11 +1,11 @@
 package hvorostina.chesscomapi.service.impl;
 
-import hvorostina.chesscomapi.in_memory_cache.RequestCache;
+import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
-import hvorostina.chesscomapi.model.mapper.GameDTOWithZoneTimeDateMapper;
+import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
+import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
@@ -19,143 +19,101 @@ import org.springframework.web.client.HttpServerErrorException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @lombok.Data
 @Service
 @Transactional
 public class GameInDatabaseServiceImpl implements GameService {
-    private final GameDTOWithZoneTimeDateMapper gameDTOWithZoneTimeDateMapper;
+    private final GameDTOWithDateMapper gameDTOWithDateMapper;
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
-    private final RequestCache cache;
-    private static final String FIND_BY_UUID_REQUEST = "Game with uuid ";
-    private static final String REVIEW_REQUEST = " review";
+    private final RequestGamesCacheServiceImpl cacheService;
     @Override
-    public Optional<GameDTOWithZonedTimeDate> addGame(GameDTO game) {
-        if (gameRepository.findGameByUuid(game.getUuid()).isPresent())
-            return Optional.empty();
-        List<Player> players = getPlayersOrEmptyList(game);
-        if (players.isEmpty())
-            return Optional.empty();
-        Game newGame = new Game();
-        newGame.setGameURL(game.getGameURL());
-        Instant instant = Instant.ofEpochSecond(game.getGameTimestamp());
-        LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
-        newGame.setData(data);
-        newGame.setUuid(game.getUuid());
-        newGame.setPlayers(players);
-        newGame.setWhiteRating(game.getWhitePlayer().getRating());
-        newGame.setBlackRating(game.getBlackPlayer().getRating());
-        if (Objects.equals(game.getWhitePlayer().getGameResult(), "win")) {
-            newGame.setWinnerSide("white");
-            newGame.setGameResult(game.getBlackPlayer().getGameResult());
-        } else {
-            newGame.setWinnerSide("black");
-            newGame.setGameResult(game.getWhitePlayer().getGameResult());
-        }
-        newGame.setTimeClass(game.getTimeClass());
-        String query = game.getBlackPlayer().getUsername() + REVIEW_REQUEST;
-        if(cache.containsQuery(query))
-            cache.removeQuery(query);
-        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(newGame)));
+    public GameDTOWithDate addGame(Game game) {
+        if (gameRepository.findGameByUuid(game.getUuid()).isEmpty())
+            gameRepository.save(game);
+        return gameDTOWithDateMapper.apply(game);
     }
-    public List<Player> getPlayersOrEmptyList(GameDTO game) {
-        List<Player> players = new ArrayList<>();
-        Optional<Player> whitePlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getWhitePlayer()
-                        .getUsername().toLowerCase());
-        if (whitePlayer.isEmpty()) {
-            return List.of();
-        }
-        players.add(0, whitePlayer.get());
-        Optional<Player> blackPlayer = playerRepository
-                .findPlayerByUsername(game
-                        .getBlackPlayer()
-                        .getUsername().toLowerCase());
-        if (blackPlayer.isEmpty()) {
-            return List.of();
-        }
-        players.add(1, blackPlayer.get());
-        return players;
-    }
-
     @Override
-    public Optional<GameDTOWithZonedTimeDate> updateGameResult(GameDTO gameParams) {
-        Optional<Game> updatedGame = gameRepository.findGameByUuid(gameParams.getUuid());
+    public Game getByUuid(String uuid) {
+        Optional<Game> game = gameRepository.findGameByUuid(uuid);
+        return game.orElseThrow(() ->
+                new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    }
+    @Override
+    public GameDTOWithDate updateGameResult(GameDTO fields) {
+        Optional<Game> updatedGame = gameRepository.findGameByUuid(fields.getUuid());
         if (updatedGame.isEmpty())
-            return Optional.empty();
-        if (gameParams.getGameTimestamp() != null) {
-            Instant instant = Instant.ofEpochSecond(gameParams.getGameTimestamp());
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        setFieldsIfSpecified(updatedGame.get(), fields);
+        gameRepository.save(updatedGame.get());
+        GameDTOWithDate gameDTOWithDate = gameDTOWithDateMapper.apply(updatedGame.get());
+        cacheService.saveOrUpdateByUuid(gameDTOWithDate);
+        return gameDTOWithDate;
+    }
+    private void setFieldsIfSpecified(Game updatedGame, GameDTO fields) {
+        setDataIfSpecified(updatedGame, fields);
+        setURLIfSpecified(updatedGame, fields);
+    }
+    private void setDataIfSpecified(Game updatedGame, GameDTO fields) {
+        if (fields.getGameTimestamp() != null) {
+            Instant instant = Instant.ofEpochSecond(fields.getGameTimestamp());
             LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
-            updatedGame.get().setData(data);
+            updatedGame.setData(data);
         }
-        if (gameParams.getGameURL() != null)
-            updatedGame.get().setGameURL(gameParams.getGameURL());
-        String playerQuery = FIND_BY_UUID_REQUEST + gameParams.getUuid();
-        if(cache.containsQuery(playerQuery))
-            cache.updateResponse(playerQuery, updatedGame.map(gameDTOWithZoneTimeDateMapper));
-        return Optional.of(gameDTOWithZoneTimeDateMapper.apply(gameRepository.save(updatedGame.get())));
+    }
+    private void setURLIfSpecified(Game updatedGame, GameDTO fields) {
+        if (fields.getGameURL() != null)
+            updatedGame.setGameURL(fields.getGameURL());
     }
 
     @Override
-    public List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username) {
+    public List<GameDTOWithDate> findAllGamesByUsername(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isPresent()) {
-            List<Game> games = player.get().getGames();
-            return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
-        }
-        return List.of();
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        List<Game> playerGames = player.get().getGames();
+        List<GameDTOWithDate> playerGameDTOsForCache = playerGames.stream()
+                .map(gameDTOWithDateMapper)
+                .toList();
+        cacheService.saveByUser(username, playerGameDTOsForCache);
+        return playerGameDTOsForCache;
     }
 
     @Override
-    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
+    public List<GameDTOWithDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
         List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, start, end);
-        return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
+        return games.stream().map(gameDTOWithDateMapper).toList();
     }
 
     @Override
-    public Optional<GameDTOWithZonedTimeDate> findGameByUUID(String uuid) {
-        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
-        if(cache.containsQuery(gameQuery))
-            return Optional.of((GameDTOWithZonedTimeDate) cache.getResponse(gameQuery));
+    public GameDTOWithDate findGameByUUID(String uuid) {
+        GameDTOWithDate gameInCache = cacheService.getByUuid(uuid);
+        if(gameInCache != null)
+            return gameInCache;
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
-            return Optional.empty();
-        Optional<GameDTOWithZonedTimeDate> gameResult = game.map(gameDTOWithZoneTimeDateMapper);
-        if(gameResult.isEmpty())
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
-        cache.addQuery(gameQuery, gameResult.get());
-        return gameResult;
+            throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
+        GameDTOWithDate gameDTO = gameDTOWithDateMapper.apply(game.get());
+        cacheService.saveOrUpdateByUuid(gameDTO);
+        return gameDTO;
     }
 
     @Override
     public void deleteAllGames() {
-        cache.clear();
+        cacheService.deleteAll();
         gameRepository.deleteAll();
     }
 
     @Override
     public void deleteGame(String uuid) {
-        String gameQuery = FIND_BY_UUID_REQUEST + uuid;
-        if(cache.containsQuery(gameQuery))
-            cache.removeQuery(gameQuery);
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        String whiteUsername = game.get().getPlayers().get(0).getUsername();
-        String blackUsername = game.get().getPlayers().get(1).getUsername();
-        String whiteReviewsQuery = whiteUsername + REVIEW_REQUEST;
-        String blackReviewsQuery = blackUsername + REVIEW_REQUEST;
-        if(cache.containsQuery(whiteReviewsQuery))
-            cache.removeQuery(whiteReviewsQuery);
-        if(cache.containsQuery(blackReviewsQuery))
-            cache.removeQuery(blackReviewsQuery);
+        cacheService.deleteByUuid(uuid);
         gameRepository.delete(game.get());
     }
 }

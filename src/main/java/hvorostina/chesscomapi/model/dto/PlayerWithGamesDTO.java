@@ -1,16 +1,18 @@
 package hvorostina.chesscomapi.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import lombok.*;
 
 import java.net.URL;
+import java.util.List;
 
-@Data
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class PlayerDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+public class PlayerWithGamesDTO {
     @Nullable
     @JsonProperty("player_id")
     Integer id;
@@ -22,4 +24,6 @@ public class PlayerDTO {
     String country;
     @JsonProperty("status")
     String status;
+    @JsonProperty("game_list")
+    List<GameDTOWithDate> games;
 }

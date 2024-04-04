@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameDTOWithZonedTimeDate {
+public class GameDTOWithDate {
     URL gameURL;
     String uuid;
     ZonedDateTime endGameTimeDate;

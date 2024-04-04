@@ -1,13 +1,17 @@
 package hvorostina.chesscomapi.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Game {
     @Id
     @SequenceGenerator(name = "game_sequence_generator",
