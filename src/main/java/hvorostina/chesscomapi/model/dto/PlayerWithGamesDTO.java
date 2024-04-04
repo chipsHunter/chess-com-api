@@ -1,7 +1,6 @@
 package hvorostina.chesscomapi.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.annotation.Nullable;
 import lombok.*;
 
 import java.net.URL;
