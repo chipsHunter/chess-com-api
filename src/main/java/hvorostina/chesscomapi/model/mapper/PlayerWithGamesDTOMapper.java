@@ -25,11 +25,8 @@ public class PlayerWithGamesDTOMapper implements Function<Player, PlayerWithGame
                 .toList();
         try {
             return PlayerWithGamesDTO.builder()
-                    .id(player.getId())
                     .userAccount((new URI("https://api.chess.com/pub/player/".concat(player.getUsername()))).toURL())
                     .username(player.getUsername())
-                    .status(player.getStatus())
-                    .country(player.getCountry())
                     .games(userGames)
                     .build();
         } catch (MalformedURLException | URISyntaxException e) {
