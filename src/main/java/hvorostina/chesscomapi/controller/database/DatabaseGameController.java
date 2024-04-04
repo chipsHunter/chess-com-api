@@ -1,8 +1,9 @@
 package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Game;
+import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
 import hvorostina.chesscomapi.model.mapper.GameMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
@@ -18,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -29,18 +29,24 @@ public class DatabaseGameController {
     private final PlayerService playerService;
     private final GameMapper gameMapper;
     @PostMapping("/add")
-    public ResponseEntity<GameDTOWithZonedTimeDate> addGame(@RequestBody GameDTO gameDTO) {
+    public ResponseEntity<GameDTOWithDate> addGame(@RequestBody GameDTO gameDTO) {
         Game gameToAdd = gameMapper.apply(gameDTO);
-        GameDTOWithZonedTimeDate addedGame = gameService.addGame(gameToAdd);
+        GameDTOWithDate addedGame = gameService.addGame(gameToAdd);
+        String whitePlayerUsername = addedGame.getWhitePlayer().getUsername();
+        Player whitePlayer = playerService.findPlayerEntityByUsername(whitePlayerUsername);
+        String blackPlayerUsername = addedGame.getBlackPlayer().getUsername();
+        Player blackPlayer = playerService.findPlayerEntityByUsername(blackPlayerUsername);
+        gameReviewService.manageGameReviewWhenAddGame(addedGame, whitePlayer);
+        gameReviewService.manageGameReviewWhenAddGame(addedGame, blackPlayer);
         return new ResponseEntity<>(addedGame, HttpStatus.CREATED);
     }
     @GetMapping("/find")
-    public ResponseEntity<GameDTOWithZonedTimeDate> findGameByUUID(@RequestParam String uuid) {
-        GameDTOWithZonedTimeDate foundGame = gameService.findGameByUUID(uuid);
+    public ResponseEntity<GameDTOWithDate> findGameByUUID(@RequestParam String uuid) {
+        GameDTOWithDate foundGame = gameService.findGameByUUID(uuid);
         return new ResponseEntity<>(foundGame, HttpStatus.OK);
     }
     @GetMapping("/find_in_period")
-    public List<GameDTOWithZonedTimeDate> findAllPlayerGamesInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
+    public List<GameDTOWithDate> findAllPlayerGamesInPeriod(@RequestBody UserGamesInPeriodRequestDTO requestDTO) {
         int playerID = playerService.getIdByUsername(requestDTO.getUsername());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime start = LocalDateTime.parse(requestDTO.getStartData(), formatter);
@@ -48,19 +54,25 @@ public class DatabaseGameController {
         return gameService.findGamesByUserBetweenDates(playerID, start, end);
     }
     @PatchMapping("/update")
-    public ResponseEntity<GameDTOWithZonedTimeDate> updateGame(@RequestBody GameDTO gameDTO) {
-        GameDTOWithZonedTimeDate updateGame = gameService.updateGameResult(gameDTO);
+    public ResponseEntity<GameDTOWithDate> updateGame(@RequestBody GameDTO gameDTO) {
+        GameDTOWithDate updateGame = gameService.updateGameResult(gameDTO);
         return new ResponseEntity<>(updateGame, HttpStatus.OK);
     }
     @GetMapping("/find_all")
-    public List<GameDTOWithZonedTimeDate> findAllGames(@RequestParam String username) {
+    public List<GameDTOWithDate> findAllGames(@RequestParam String username) {
         return gameService.findAllGamesByUsername(username.toLowerCase());
     }
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(@RequestParam String uuid) {
-        GameDTOWithZonedTimeDate gameDTO = gameService.findGameByUUID(uuid);
-        gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO, gameDTO.getWhitePlayer().getUsername());
-        gameReviewService.updateTimeClassReviewByDeletingGame(gameDTO, gameDTO.getBlackPlayer().getUsername());
+        GameDTOWithDate gameDTO = gameService.findGameByUUID(uuid);
+        String whitePlayerUsername = gameDTO.getWhitePlayer().getUsername();
+        Player whitePlayer = playerService.findPlayerEntityByUsername(whitePlayerUsername);
+        String blackPlayerUsername = gameDTO.getBlackPlayer().getUsername();
+        Player blackPlayer = playerService.findPlayerEntityByUsername(blackPlayerUsername);
+        if(whitePlayer == null || blackPlayer == null)
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        gameReviewService.manageGameReviewWhenDeleteGame(gameDTO, whitePlayer);
+        gameReviewService.manageGameReviewWhenDeleteGame(gameDTO, blackPlayer);
         gameService.deleteGame(uuid);
         return HttpStatus.OK;
     }

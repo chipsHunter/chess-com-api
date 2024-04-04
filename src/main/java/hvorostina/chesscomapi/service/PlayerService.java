@@ -2,6 +2,7 @@ package hvorostina.chesscomapi.service;
 
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 
 import java.util.List;
 
@@ -13,5 +14,7 @@ public interface PlayerService {
     PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields);
     void deletePlayerByUsername(String username);
     Integer getIdByUsername(String username);
+
+    List<PlayerWithGamesDTO> getAllPlayersWithGames();
 }
 

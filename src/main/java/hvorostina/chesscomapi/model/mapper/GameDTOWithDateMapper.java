@@ -1,7 +1,7 @@
 package hvorostina.chesscomapi.model.mapper;
 
 import hvorostina.chesscomapi.model.Game;
-import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
+import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,15 +18,15 @@ import java.util.function.Function;
 
 @AllArgsConstructor
 @Component
-public class GameDTOWithZoneTimeDateMapper implements Function<Game, GameDTOWithZonedTimeDate> {
+public class GameDTOWithDateMapper implements Function<Game, GameDTOWithDate> {
     private final PlayersInGameDTOMapper playersInGameDTOMapper;
     @Override
-    public GameDTOWithZonedTimeDate apply(Game game) {
+    public GameDTOWithDate apply(Game game) {
         ZoneId zoneId = ZoneId.of("Europe/Minsk");
         ZonedDateTime actualDateTime = game.getData().atZone(zoneId);
         List<PlayerInGameDTO> players = playersInGameDTOMapper.apply(game);
         try {
-            return GameDTOWithZonedTimeDate.builder()
+            return GameDTOWithDate.builder()
                     .gameURL((new URI(game.getGameURL())).toURL())
                     .uuid(game.getUuid())
                     .endGameTimeDate(actualDateTime)

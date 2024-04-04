@@ -2,6 +2,7 @@ package hvorostina.chesscomapi.controller.database;
 
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
@@ -9,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -41,8 +43,15 @@ public class DatabasePlayerController {
     }
     @DeleteMapping("/delete")
     public HttpStatus deleteUser(@RequestParam String username) {
-        gameReviewService.deleteAllReviewsByUsername(username);
+        Player player = playerService.findPlayerEntityByUsername(username);
+        if(player == null)
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        gameReviewService.deleteAllReviewsByPlayer(player);
         playerService.deletePlayerByUsername(username);
         return HttpStatus.OK;
+    }
+    @GetMapping("/all_players_with_games")
+    public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
+        return playerService.getAllPlayersWithGames();
     }
 }

@@ -4,8 +4,8 @@ import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameDTOWithZonedTimeDate;
-import hvorostina.chesscomapi.model.mapper.GameDTOWithZoneTimeDateMapper;
+import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
+import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
@@ -26,27 +26,33 @@ import java.util.Optional;
 @Service
 @Transactional
 public class GameInDatabaseServiceImpl implements GameService {
-    private final GameDTOWithZoneTimeDateMapper gameDTOWithZoneTimeDateMapper;
+    private final GameDTOWithDateMapper gameDTOWithDateMapper;
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final GameReviewRepository gameReviewRepository;
     private final RequestGamesCacheServiceImpl cacheService;
     @Override
-    public GameDTOWithZonedTimeDate addGame(Game game) {
+    public GameDTOWithDate addGame(Game game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isEmpty())
             gameRepository.save(game);
-        return gameDTOWithZoneTimeDateMapper.apply(game);
+        return gameDTOWithDateMapper.apply(game);
     }
     @Override
-    public GameDTOWithZonedTimeDate updateGameResult(GameDTO fields) {
+    public Game getByUuid(String uuid) {
+        Optional<Game> game = gameRepository.findGameByUuid(uuid);
+        return game.orElseThrow(() ->
+                new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    }
+    @Override
+    public GameDTOWithDate updateGameResult(GameDTO fields) {
         Optional<Game> updatedGame = gameRepository.findGameByUuid(fields.getUuid());
         if (updatedGame.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         setFieldsIfSpecified(updatedGame.get(), fields);
         gameRepository.save(updatedGame.get());
-        GameDTOWithZonedTimeDate gameDTOWithZonedTimeDate = gameDTOWithZoneTimeDateMapper.apply(updatedGame.get());
-        cacheService.saveOrUpdateByUuid(gameDTOWithZonedTimeDate);
-        return gameDTOWithZonedTimeDate;
+        GameDTOWithDate gameDTOWithDate = gameDTOWithDateMapper.apply(updatedGame.get());
+        cacheService.saveOrUpdateByUuid(gameDTOWithDate);
+        return gameDTOWithDate;
     }
     private void setFieldsIfSpecified(Game updatedGame, GameDTO fields) {
         setDataIfSpecified(updatedGame, fields);
@@ -65,33 +71,33 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDTOWithZonedTimeDate> findAllGamesByUsername(String username) {
+    public List<GameDTOWithDate> findAllGamesByUsername(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         if(player.isEmpty())
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         List<Game> playerGames = player.get().getGames();
-        List<GameDTOWithZonedTimeDate> playerGameDTOsForCache = playerGames.stream()
-                .map(gameDTOWithZoneTimeDateMapper)
+        List<GameDTOWithDate> playerGameDTOsForCache = playerGames.stream()
+                .map(gameDTOWithDateMapper)
                 .toList();
         cacheService.saveByUser(username, playerGameDTOsForCache);
         return playerGameDTOsForCache;
     }
 
     @Override
-    public List<GameDTOWithZonedTimeDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
+    public List<GameDTOWithDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
         List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, start, end);
-        return games.stream().map(gameDTOWithZoneTimeDateMapper).toList();
+        return games.stream().map(gameDTOWithDateMapper).toList();
     }
 
     @Override
-    public GameDTOWithZonedTimeDate findGameByUUID(String uuid) {
-        GameDTOWithZonedTimeDate gameInCache = cacheService.getByUuid(uuid);
+    public GameDTOWithDate findGameByUUID(String uuid) {
+        GameDTOWithDate gameInCache = cacheService.getByUuid(uuid);
         if(gameInCache != null)
             return gameInCache;
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
             throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
-        GameDTOWithZonedTimeDate gameDTO = gameDTOWithZoneTimeDateMapper.apply(game.get());
+        GameDTOWithDate gameDTO = gameDTOWithDateMapper.apply(game.get());
         cacheService.saveOrUpdateByUuid(gameDTO);
         return gameDTO;
     }

@@ -13,6 +13,10 @@ public class GameReview {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "review_sequence_generator")
     @Column(name = "id")
     Integer id;
+    @Column(name = "time_class")
+    String timeClass;
+    @Column(name = "best_rating")
+    Integer bestRating = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
     Integer winCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")

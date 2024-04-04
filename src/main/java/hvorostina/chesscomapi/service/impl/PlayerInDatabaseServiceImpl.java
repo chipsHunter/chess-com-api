@@ -3,7 +3,9 @@ package hvorostina.chesscomapi.service.impl;
 import hvorostina.chesscomapi.in_memory_cache.RequestPlayerCacheServiceImpl;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerDTOMapper;
+import hvorostina.chesscomapi.model.mapper.PlayerWithGamesDTOMapper;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.Data;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
     private final PlayerDTOMapper playerDTOMapper;
+    private final PlayerWithGamesDTOMapper playerWithGamesDTOMapper;
     private final RequestPlayerCacheServiceImpl cache;
     @Override
     public List<PlayerDTO> findAllPlayers() {
@@ -48,7 +51,13 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         cache.saveOrUpdate(playerToCache);
         return playerToCache;
     }
-
+    @Override
+    public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
+        List<Player> players = playerDatabaseRepository.findAll();
+        return players.stream()
+                .map(playerWithGamesDTOMapper)
+                .toList();
+    }
     @Override
     public Player findPlayerEntityByUsername(String username) {
         Optional<Player> player = playerDatabaseRepository.findPlayerByUsername(username);

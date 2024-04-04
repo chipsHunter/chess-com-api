@@ -1,9 +1,11 @@
 package hvorostina.chesscomapi.controller.database;
 
+import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.GameReviewService;
+import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +18,13 @@ import java.util.List;
 @RequestMapping("/database/game_review")
 public class DatabaseGameReviewController {
     private final GameReviewService gameReviewService;
-    private final PlayerRepository playerRepository;
+    private final PlayerService playerService;
     @GetMapping("/find_all")
     List<GameReviewDTO> checkPlayerStatistics(@RequestParam String username) {
-        if(playerRepository.findPlayerByUsername(username).isEmpty())
+        Player player = playerService.findPlayerEntityByUsername(username);
+        if(player == null)
             return List.of();
-        return gameReviewService.viewPlayerStatistics(username);
+        return gameReviewService.viewPlayerStatistics(player);
     }
     @PatchMapping("/patch")
     public ResponseEntity<String> patchPlayerStatistics(@RequestBody GameDTO game) {
