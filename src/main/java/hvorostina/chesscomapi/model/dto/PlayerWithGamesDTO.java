@@ -13,17 +13,10 @@ import java.util.List;
 @Getter
 @Setter
 public class PlayerWithGamesDTO {
-    @Nullable
-    @JsonProperty("player_id")
-    Integer id;
-    @JsonProperty("username")
+    @JsonProperty("player_username")
     String username;
-    @JsonProperty("url")
+    @JsonProperty("player_account_url")
     URL userAccount;
-    @JsonProperty("country")
-    String country;
-    @JsonProperty("status")
-    String status;
-    @JsonProperty("game_list")
+    @JsonProperty("player_game_list")
     List<GameDTOWithDate> games;
 }

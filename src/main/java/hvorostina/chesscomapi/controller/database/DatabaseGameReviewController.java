@@ -3,7 +3,6 @@ package hvorostina.chesscomapi.controller.database;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
-import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
