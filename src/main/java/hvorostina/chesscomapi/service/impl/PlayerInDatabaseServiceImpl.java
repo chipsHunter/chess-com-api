@@ -61,7 +61,9 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     @Override
     public Player findPlayerEntityByUsername(String username) {
         Optional<Player> player = playerDatabaseRepository.findPlayerByUsername(username);
-        return player.orElse(null);
+        if(player.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        return player.get();
     }
 
     @Override
@@ -93,7 +95,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     public Integer getIdByUsername(String username) {
         Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
         if(playerInDatabase.isEmpty())
-            return 0;
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         return playerInDatabase.get().getId();
     }
 }
