@@ -12,7 +12,7 @@ public interface PlayerService {
     PlayerDTO findPlayerByUsernameAndSaveInCache(String username);
     Player findPlayerEntityByUsername(String username);
     PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields);
-    void deletePlayerByUsername(String username);
+    void deletePlayer(Player player);
     Integer getIdByUsername(String username);
 
     List<PlayerWithGamesDTO> getAllPlayersWithGames();
