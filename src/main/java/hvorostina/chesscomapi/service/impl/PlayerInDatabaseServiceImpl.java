@@ -45,9 +45,9 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         if(playerFromCache != null)
             return playerFromCache;
         Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(username);
-        PlayerDTO playerToCache =  playerDTOMapper.apply(playerFromDatabase.orElseThrow(() ->
-                new HttpClientErrorException(HttpStatus.NOT_FOUND))
-        );
+        if(playerFromDatabase.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        PlayerDTO playerToCache =  playerDTOMapper.apply(playerFromDatabase.get());
         cache.saveOrUpdate(playerToCache);
         return playerToCache;
     }
@@ -87,12 +87,9 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         }
     }
     @Override
-    public void deletePlayerByUsername(String username) {
-        cache.delete(username);
-        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
-        if(playerInDatabase.isEmpty())
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        playerDatabaseRepository.delete(playerInDatabase.get());
+    public void deletePlayer(Player player) {
+        cache.delete(player.getUsername());
+        playerDatabaseRepository.delete(player);
     }
     @Override
     public Integer getIdByUsername(String username) {

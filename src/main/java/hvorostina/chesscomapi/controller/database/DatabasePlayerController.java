@@ -26,7 +26,7 @@ public class DatabasePlayerController {
         return playerService.findAllPlayers();
     }
     @GetMapping("/find")
-    public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username) {
+    public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username){
         PlayerDTO player = playerService.findPlayerByUsernameAndSaveInCache(username);
         return new ResponseEntity<>(player, HttpStatus.OK);
     }
@@ -37,17 +37,21 @@ public class DatabasePlayerController {
         return new ResponseEntity<>(savedPlayer, HttpStatus.CREATED);
     }
     @PatchMapping("/update")
-    public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO)
+            throws HttpClientErrorException{
         PlayerDTO updatedPlayer = playerService.updatePlayerAndSaveInCache(playerDTO);
+        if(updatedPlayer == null)
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
     }
     @DeleteMapping("/delete")
-    public HttpStatus deleteUser(@RequestParam String username) {
+    public HttpStatus deleteUser(@RequestParam String username)
+            throws HttpClientErrorException{
         Player player = playerService.findPlayerEntityByUsername(username);
         if(player == null)
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         gameReviewService.deleteAllReviewsByPlayer(player);
-        playerService.deletePlayerByUsername(username);
+        playerService.deletePlayer(player);
         return HttpStatus.OK;
     }
     @GetMapping("/all_players_with_games")
