@@ -13,3 +13,10 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: true
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html
