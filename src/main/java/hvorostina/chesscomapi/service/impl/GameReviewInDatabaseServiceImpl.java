@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.annotations.AspectAnnotation;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
@@ -26,7 +27,6 @@ import java.util.*;
 public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewRepository gameReviewRepository;
     private final GameReviewDTOMapper gameReviewDTOMapper;
-    private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
     private final GameDTOWithDateMapper gameDTOMapper;
     private static final String CHECKMATED = "checkmated";
@@ -38,6 +38,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private static final int ADD = 1;
     private static final int DELETE = -1;
     @Override
+    @AspectAnnotation
     public List<GameReviewDTO> viewPlayerStatistics(Player player) {
         List<GameReview> allReviews = player.getGameReviews();
         return allReviews.stream()
@@ -45,6 +46,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
                 .toList();
     }
     @Override
+    @AspectAnnotation
     public GameReviewDTO manageGameReviewWhenAddGame(GameDTOWithDate game, Player player) {
         String playerSide = getPlayerSide(game, player);
         PlayerInGameDTO playerResults = playerResults(game, playerSide);
@@ -53,6 +55,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
             return updateGameReviewWhenAddGame(playerReview.get(), game, playerResults);
         return createGameReview(game, player, playerResults);
     }
+    @AspectAnnotation
     public void manageGameReviewWhenDeleteGame(GameDTOWithDate game, Player player) {
         Optional<GameReview> optionalPlayerReview = getPlayerReviewForTimeClass(player, game.getTimeClass());
         if(optionalPlayerReview.isEmpty()) {
@@ -72,6 +75,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         gameReviewDTOMapper.apply(playerReview);
     }
     @Override
+    @AspectAnnotation
     public void deleteAllReviewsByPlayer(Player player) {
         List<GameReview> reviews = player.getGameReviews();
         gameReviewRepository.deleteAll(reviews);
@@ -183,6 +187,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
             review.setWinCasesRecord(draws + method);
         }
     }
+    @AspectAnnotation
     public void deleteAllReviews() {
         gameReviewRepository.deleteAll();
     }

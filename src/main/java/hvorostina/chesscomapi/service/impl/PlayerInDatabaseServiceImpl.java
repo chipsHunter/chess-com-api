@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.annotations.AspectAnnotation;
 import hvorostina.chesscomapi.in_memory_cache.RequestPlayerCacheServiceImpl;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
@@ -26,6 +27,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerWithGamesDTOMapper playerWithGamesDTOMapper;
     private final RequestPlayerCacheServiceImpl cache;
     @Override
+    @AspectAnnotation
     public List<PlayerDTO> findAllPlayers() {
         List<Player> players = playerDatabaseRepository.findAll();
         return players.stream()
@@ -33,6 +35,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
                 .toList();
     }
     @Override
+    @AspectAnnotation
     public PlayerDTO addPlayer(Player player) {
         Player addedPlayer = playerDatabaseRepository.save(player);
         PlayerDTO playerDTOForCache = playerDTOMapper.apply(addedPlayer);
@@ -40,6 +43,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         return playerDTOForCache;
     }
     @Override
+    @AspectAnnotation
     public PlayerDTO findPlayerByUsernameAndSaveInCache(String username) {
         PlayerDTO playerFromCache = cache.getByUsername(username);
         if(playerFromCache != null)
@@ -52,6 +56,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         return playerToCache;
     }
     @Override
+    @AspectAnnotation
     public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
         List<Player> players = playerDatabaseRepository.findAll();
         return players.stream()
@@ -67,6 +72,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     }
 
     @Override
+    @AspectAnnotation
     public PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields) {
         Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(fields.getUsername());
         if(playerFromDatabase.isEmpty())
@@ -87,6 +93,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         }
     }
     @Override
+    @AspectAnnotation
     public void deletePlayer(Player player) {
         cache.delete(player.getUsername());
         playerDatabaseRepository.delete(player);

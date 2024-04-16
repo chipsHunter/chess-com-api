@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.service.impl;
 
+import hvorostina.chesscomapi.annotations.AspectAnnotation;
 import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
@@ -10,6 +11,7 @@ import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.GameService;
+import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-@lombok.Data
+@Data
 @Service
 @Transactional
 public class GameInDatabaseServiceImpl implements GameService {
@@ -38,12 +40,14 @@ public class GameInDatabaseServiceImpl implements GameService {
         return gameDTOWithDateMapper.apply(game);
     }
     @Override
+    @AspectAnnotation
     public Game getByUuid(String uuid) {
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         return game.orElseThrow(() ->
                 new HttpClientErrorException(HttpStatus.NOT_FOUND));
     }
     @Override
+    @AspectAnnotation
     public GameDTOWithDate updateGameResult(GameDTO fields) {
         Optional<Game> updatedGame = gameRepository.findGameByUuid(fields.getUuid());
         if (updatedGame.isEmpty())
@@ -71,6 +75,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
+    @AspectAnnotation
     public List<GameDTOWithDate> findAllGamesByUsername(String username) {
         Optional<Player> player = playerRepository.findPlayerByUsername(username);
         if(player.isEmpty())
@@ -84,12 +89,14 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
+    @AspectAnnotation
     public List<GameDTOWithDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
         List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, start, end);
         return games.stream().map(gameDTOWithDateMapper).toList();
     }
 
     @Override
+    @AspectAnnotation
     public GameDTOWithDate findGameByUUID(String uuid) {
         GameDTOWithDate gameInCache = cacheService.getByUuid(uuid);
         if(gameInCache != null)
@@ -103,12 +110,14 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
 
     @Override
+    @AspectAnnotation
     public void deleteAllGames() {
         cacheService.deleteAll();
         gameRepository.deleteAll();
     }
 
     @Override
+    @AspectAnnotation
     public void deleteGame(String uuid) {
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if(game.isEmpty())
