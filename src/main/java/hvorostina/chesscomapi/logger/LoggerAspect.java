@@ -16,13 +16,14 @@ import java.util.Arrays;
 @Component
 public class LoggerAspect {
     @Pointcut("within(hvorostina.chesscomapi.controller..*)")
-    public void controllerMethods() {}
-    @Pointcut("@annotation(hvorostina.chesscomapi.annotations.AspectAnnotation)")
-    public void serviceMethodWithAnnotation() {}
+    public void controllerMethods() { }
+    @Pointcut("@annotation("
+            + "hvorostina.chesscomapi.annotations.AspectAnnotation)")
+    public void serviceMethodWithAnnotation() { }
     @Pointcut("within(hvorostina.chesscomapi.controller..*)"
             + " || within(hvorostina.chesscomapi.service..*)"
             + " || within(hvorostina.chesscomapi.in_memory_cache..*)")
-    public void allMethods() {}
+    public void allMethods() { }
     @Around("serviceMethodWithAnnotation()")
     public Object logEnteringAPI(final ProceedingJoinPoint joinPoint)
             throws Throwable {
@@ -45,7 +46,8 @@ public class LoggerAspect {
         }
     }
     @AfterThrowing(pointcut = "allMethods()", throwing = "exception")
-    public void logsExceptionsFromAnyLocation(JoinPoint joinPoint, Throwable exception) {
+    public void logsExceptionsFromAnyLocation(
+            final JoinPoint joinPoint, final Throwable exception) {
         log.error("Exception in : {}.{}() cause = {}",
                 joinPoint.getSignature().getDeclaringTypeName(),
                 joinPoint.getSignature().getName(), exception.getMessage());

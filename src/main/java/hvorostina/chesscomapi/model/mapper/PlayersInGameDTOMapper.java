@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 @Component
-public class PlayersInGameDTOMapper implements Function <Game, List<PlayerInGameDTO>> {
+public final class PlayersInGameDTOMapper implements
+        Function<Game, List<PlayerInGameDTO>> {
     @Override
-    public List<PlayerInGameDTO> apply(Game game) {
-        if(game.getPlayers() == null || game.getPlayers().isEmpty())
+    public List<PlayerInGameDTO> apply(final Game game) {
+        if (game.getPlayers() == null || game.getPlayers().isEmpty()) {
             return List.of();
+        }
         List<PlayerInGameDTO> playersInGameDTO = new ArrayList<>();
         PlayerInGameDTO whitePlayer = PlayerInGameDTO.builder()
                 .username(game.getPlayers().get(0).getUsername())
@@ -23,11 +25,10 @@ public class PlayersInGameDTOMapper implements Function <Game, List<PlayerInGame
                 .username(game.getPlayers().get(1).getUsername())
                 .rating(game.getBlackRating())
                 .build();
-        if(Objects.equals(game.getWinnerSide(), "white")) {
+        if (Objects.equals(game.getWinnerSide(), "white")) {
             whitePlayer.setGameResult("win");
             blackPlayer.setGameResult(game.getGameResult());
-        }
-        else {
+        } else {
             blackPlayer.setGameResult("win");
             whitePlayer.setGameResult(game.getGameResult());
         }

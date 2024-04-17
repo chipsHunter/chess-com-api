@@ -14,20 +14,21 @@ import java.util.List;
 public class Player {
     @Id
     @Column(name = "id", nullable = false, unique = true)
-    Integer id;
+    private Integer id;
     @Column(nullable = false, unique = true)
-    String username;
+    private String username;
     @Column(nullable = false)
-    String country;
+    private String country;
     @Column(nullable = false)
-    String status;
+    private String status;
     @ManyToMany
     @JoinTable(
             name = "chess_matches",
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
-    List<Game> games;
-    @OneToMany(cascade = {CascadeType.REMOVE, CascadeType.DETACH}, orphanRemoval = true, mappedBy = "user")
-    List<GameReview> gameReviews;
+    private List<Game> games;
+    @OneToMany(cascade = {CascadeType.REMOVE, CascadeType.DETACH},
+            orphanRemoval = true, mappedBy = "user")
+    private List<GameReview> gameReviews;
 }

@@ -10,9 +10,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserGamesInPeriodRequestDTO {
     @JsonProperty("username")
-    String username;
+    private String username;
     @JsonProperty("start_data")
-    String startData;
+    private String startData;
     @JsonProperty("end_data")
-    String endData;
+    private String endData;
 }

@@ -9,11 +9,11 @@ import java.time.ZonedDateTime;
 @Data
 @Builder
 public class GameReviewDTO {
-    String timeClass;
-    URL bestGameURL;
-    String bestGameUuid;
-    ZonedDateTime bestGameDate;
-    int winCasesRecord;
-    int lossCasesRecord;
-    int drawCasesRecord;
+    private String timeClass;
+    private URL bestGameURL;
+    private String bestGameUuid;
+    private ZonedDateTime bestGameDate;
+    private int winCasesRecord;
+    private int lossCasesRecord;
+    private int drawCasesRecord;
 }

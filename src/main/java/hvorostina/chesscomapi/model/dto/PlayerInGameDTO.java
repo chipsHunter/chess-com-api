@@ -11,9 +11,9 @@ import lombok.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PlayerInGameDTO {
     @JsonProperty("username")
-    String username;
+    private String username;
     @JsonProperty("rating")
-    Integer rating;
+    private Integer rating;
     @JsonProperty("result")
-    String gameResult;
+    private String gameResult;
 }

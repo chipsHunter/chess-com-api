@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChessComController {
     private final ChessComService service;
     @GetMapping("/search")
-    public JsonNode getUserByUsername(@RequestParam String username) {
+    public JsonNode getUserByUsername(
+            final @RequestParam String username) {
         return service.getUserByUsername(username);
     }
 }

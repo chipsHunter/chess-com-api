@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Component
-public class ChessComAPI {
+public final class ChessComAPI {
     private static final String BASE_URL = "https://api.chess.com/pub/";
     private final WebClient webClient;
 
@@ -19,12 +19,16 @@ public class ChessComAPI {
                 .build();
     }
 
-    public JsonNode getUserByUsername(String username) {
+    public JsonNode getUserByUsername(final String username) {
         return webClient
                 .get()
-                .uri(uriBuilder -> uriBuilder.path("player/" + username).build())
+                .uri(uriBuilder -> uriBuilder.path("player/" + username)
+                        .build())
                 .retrieve()
-                .onStatus(HttpStatusCode::isError, error -> Mono.error(new ClientServerException(error.statusCode().value())))
+                .onStatus(HttpStatusCode::isError, error ->
+                        Mono.error(new ClientServerException(
+                                error.statusCode().value()))
+                )
                 .bodyToMono(JsonNode.class)
                 .onErrorResume(ClientServerException.class, ex -> Mono.empty())
                 .block();

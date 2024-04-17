@@ -17,9 +17,12 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
-public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
+public class CustomHttpExceptionHandler
+        extends ResponseEntityExceptionHandler {
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            final HttpMessageNotReadableException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .time(LocalDateTime.now().toString())
@@ -27,7 +30,8 @@ public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(exceptionDTO, status);
     }
     @ExceptionHandler(HttpClientErrorException.class)
-    protected ResponseEntity<Object> handleAllHttpClientErrorExceptions(HttpClientErrorException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleAllHttpClientErrorExceptions(
+            final HttpClientErrorException ex, final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .exceptionInfo(ex.getStackTrace()[0].getMethodName())
@@ -36,7 +40,8 @@ public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(exceptionDTO, ex.getStatusCode());
     }
     @ExceptionHandler(HttpServerErrorException.class)
-    protected ResponseEntity<Object> handleAllHttpServerErrorExceptions(HttpServerErrorException ex) {
+    protected ResponseEntity<Object> handleAllHttpServerErrorExceptions(
+            final HttpServerErrorException ex) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .exceptionInfo(ex.getStackTrace()[0].getMethodName())
@@ -46,7 +51,11 @@ public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+            final HttpRequestMethodNotSupportedException ex,
+            final @NonNull HttpHeaders headers,
+            final @NonNull HttpStatusCode status,
+            final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .request(request.getDescription(false))
@@ -56,7 +65,9 @@ public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleNoResourceFoundException(
+            final NoResourceFoundException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .request(request.getDescription(false))
@@ -66,12 +77,14 @@ public class CustomHttpExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+    protected ResponseEntity<Object> handleAllExceptions(
+            final Exception ex, final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .exceptionInfo(ex.getStackTrace()[0].getMethodName())
                 .time(LocalDateTime.now().toString())
                 .build();
-        return new ResponseEntity<>(exceptionDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(exceptionDTO,
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

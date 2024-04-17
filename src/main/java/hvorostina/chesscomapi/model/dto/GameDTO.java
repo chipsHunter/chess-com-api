@@ -10,15 +10,15 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
     @JsonProperty("url")
-    String gameURL;
+    private String gameURL;
     @JsonProperty("uuid")
-    String uuid;
+    private String uuid;
     @JsonProperty("end_time")
-    Long gameTimestamp;
+    private Long gameTimestamp;
     @JsonProperty("time_class")
-    String timeClass;
+    private String timeClass;
     @JsonProperty("white")
-    PlayerInGameDTO whitePlayer;
+    private PlayerInGameDTO whitePlayer;
     @JsonProperty("black")
-    PlayerInGameDTO blackPlayer;
+    private PlayerInGameDTO blackPlayer;
 }

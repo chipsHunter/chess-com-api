@@ -20,13 +20,14 @@ import java.util.function.Function;
 
 @Component
 @AllArgsConstructor
-public class GameMapper implements Function<GameDTO, Game> {
+public final class GameMapper implements Function<GameDTO, Game> {
     private final PlayerRepository playerRepository;
     @Override
-    public Game apply(GameDTO gameDTO) {
+    public Game apply(final GameDTO gameDTO) {
 
         Instant instant = Instant.ofEpochSecond(gameDTO.getGameTimestamp());
-        LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+        LocalDateTime data = LocalDateTime
+                .ofInstant(instant, ZoneId.of("Europe/Minsk"));
 
         List<Player> players = getPlayerList(gameDTO);
         String winnerSide = getWinnerSide(gameDTO);
@@ -44,7 +45,7 @@ public class GameMapper implements Function<GameDTO, Game> {
                 .blackRating(gameDTO.getBlackPlayer().getRating())
                 .build();
     }
-    private List<Player> getPlayerList(GameDTO game) {
+    private List<Player> getPlayerList(final GameDTO game) {
         List<Player> players = new ArrayList<>();
         Player whitePlayer = getPlayerFromGame(game.getWhitePlayer());
         players.add(0, whitePlayer);
@@ -52,31 +53,37 @@ public class GameMapper implements Function<GameDTO, Game> {
         players.add(1, blackPlayer);
         return players;
     }
-    private Player getPlayerFromGame(PlayerInGameDTO side) {
+    private Player getPlayerFromGame(final PlayerInGameDTO side) {
         String lowercaseUsername = side.getUsername().toLowerCase();
-        Optional<Player> player = playerRepository.findPlayerByUsername(lowercaseUsername);
-        return player.orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Optional<Player> player = playerRepository
+                .findPlayerByUsername(lowercaseUsername);
+        return player.orElseThrow(() ->
+                new HttpClientErrorException(HttpStatus.NOT_FOUND));
     }
-    private String getWinnerSide(GameDTO game) {
+    private String getWinnerSide(final GameDTO game) {
         PlayerInGameDTO whitePlayer = game.getWhitePlayer();
         PlayerInGameDTO blackPlayer = game.getBlackPlayer();
         String whitePlayerResult = whitePlayer.getGameResult();
         String blackPlayerResult = blackPlayer.getGameResult();
-        if(whitePlayerResult.equals(blackPlayerResult))
+        if (whitePlayerResult.equals(blackPlayerResult)) {
             return null;
-        if(whitePlayerResult.equals("win"))
+        }
+        if (whitePlayerResult.equals("win")) {
             return "white";
+        }
         return "black";
     }
-    private String getGameResult(GameDTO game) {
+    private String getGameResult(final GameDTO game) {
         PlayerInGameDTO whitePlayer = game.getWhitePlayer();
         PlayerInGameDTO blackPlayer = game.getBlackPlayer();
         String whitePlayerResult = whitePlayer.getGameResult();
         String blackPlayerResult = blackPlayer.getGameResult();
-        if(whitePlayerResult.equals(blackPlayerResult))
+        if (whitePlayerResult.equals(blackPlayerResult)) {
             return "draw";
-        if(whitePlayerResult.equals("win"))
+        }
+        if (whitePlayerResult.equals("win")) {
             return blackPlayerResult;
+        }
         return whitePlayerResult;
     }
 }
