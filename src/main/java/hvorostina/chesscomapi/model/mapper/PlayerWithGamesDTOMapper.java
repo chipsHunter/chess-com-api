@@ -16,16 +16,18 @@ import java.util.function.Function;
 
 @AllArgsConstructor
 @Component
-public class PlayerWithGamesDTOMapper implements Function<Player, PlayerWithGamesDTO> {
+public final class PlayerWithGamesDTOMapper implements
+        Function<Player, PlayerWithGamesDTO> {
     private final GameDTOWithDateMapper gameDTOWithDateMapper;
     @Override
-    public PlayerWithGamesDTO apply(Player player) {
+    public PlayerWithGamesDTO apply(final Player player) {
         List<GameDTOWithDate> userGames = player.getGames().stream()
                 .map(gameDTOWithDateMapper)
                 .toList();
         try {
             return PlayerWithGamesDTO.builder()
-                    .userAccount((new URI("https://api.chess.com/pub/player/".concat(player.getUsername()))).toURL())
+                    .userAccount((new URI("https://api.chess.com/pub/player/"
+                            .concat(player.getUsername()))).toURL())
                     .username(player.getUsername())
                     .games(userGames)
                     .build();

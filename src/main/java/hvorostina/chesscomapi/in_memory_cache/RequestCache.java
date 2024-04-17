@@ -13,27 +13,28 @@ public class RequestCache<T> {
     public RequestCache() {
         this.cache = new LinkedHashMap<>(MAX_SIZE) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
+            protected boolean removeEldestEntry(
+                    final Map.Entry<String, T> eldest) {
                 return size() >= MAX_SIZE;
             }
         };
     }
-    public void removeQuery(String query) {
+    public void removeQuery(final String query) {
         cache.remove(query);
     }
     public void clear() {
         cache.clear();
     }
-    public boolean containsQuery(String query) {
+    public boolean containsQuery(final String query) {
         return cache.containsKey(query);
     }
-    public void putQuery(String query, T response) {
+    public void putQuery(final String query, final T response) {
         cache.put(query, response);
     }
-    public void updateQuery(String query, T response) {
+    public void updateQuery(final String query, final T response) {
         cache.replace(query, response);
     }
-    public T getResponse(String query) {
+    public T getResponse(final String query) {
         return cache.get(query);
     }
 }

@@ -36,7 +36,7 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     }
     @Override
     @AspectAnnotation
-    public PlayerDTO addPlayer(Player player) {
+    public PlayerDTO addPlayer(final Player player) {
         Player addedPlayer = playerDatabaseRepository.save(player);
         PlayerDTO playerDTOForCache = playerDTOMapper.apply(addedPlayer);
         cache.saveOrUpdate(playerDTOForCache);
@@ -44,14 +44,19 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     }
     @Override
     @AspectAnnotation
-    public PlayerDTO findPlayerByUsernameAndSaveInCache(String username) {
+    public PlayerDTO findPlayerByUsernameAndSaveInCache(
+            final String username) {
         PlayerDTO playerFromCache = cache.getByUsername(username);
-        if(playerFromCache != null)
+        if (playerFromCache != null) {
             return playerFromCache;
-        Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(username);
-        if(playerFromDatabase.isEmpty())
+        }
+        Optional<Player> playerFromDatabase = playerDatabaseRepository
+                .findPlayerByUsername(username);
+        if (playerFromDatabase.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        PlayerDTO playerToCache =  playerDTOMapper.apply(playerFromDatabase.get());
+        }
+        PlayerDTO playerToCache =  playerDTOMapper
+                .apply(playerFromDatabase.get());
         cache.saveOrUpdate(playerToCache);
         return playerToCache;
     }
@@ -64,19 +69,23 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
                 .toList();
     }
     @Override
-    public Player findPlayerEntityByUsername(String username) {
-        Optional<Player> player = playerDatabaseRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
+    public Player findPlayerEntityByUsername(final String username) {
+        Optional<Player> player = playerDatabaseRepository
+                .findPlayerByUsername(username);
+        if (player.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
         return player.get();
     }
 
     @Override
     @AspectAnnotation
-    public PlayerDTO updatePlayerAndSaveInCache(PlayerDTO fields) {
-        Optional<Player> playerFromDatabase = playerDatabaseRepository.findPlayerByUsername(fields.getUsername());
-        if(playerFromDatabase.isEmpty())
+    public PlayerDTO updatePlayerAndSaveInCache(final PlayerDTO fields) {
+        Optional<Player> playerFromDatabase = playerDatabaseRepository
+                .findPlayerByUsername(fields.getUsername());
+        if (playerFromDatabase.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
         Player actualPlayer = playerFromDatabase.get();
         updatePlayerFields(actualPlayer, fields);
         playerDatabaseRepository.save(actualPlayer);
@@ -84,25 +93,28 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
         cache.saveOrUpdate(playerDTOToCache);
         return playerDTOToCache;
     }
-    private void updatePlayerFields(Player player, PlayerDTO fields) {
-        if(fields.getStatus() != null){
+    private void updatePlayerFields(
+            final Player player, final PlayerDTO fields) {
+        if (fields.getStatus() != null) {
             player.setStatus(fields.getStatus());
         }
-        if(fields.getCountry() != null){
+        if (fields.getCountry() != null) {
             player.setCountry(fields.getCountry());
         }
     }
     @Override
     @AspectAnnotation
-    public void deletePlayer(Player player) {
+    public void deletePlayer(final Player player) {
         cache.delete(player.getUsername());
         playerDatabaseRepository.delete(player);
     }
     @Override
-    public Integer getIdByUsername(String username) {
-        Optional<Player> playerInDatabase = playerDatabaseRepository.findPlayerByUsername(username);
-        if(playerInDatabase.isEmpty())
+    public Integer getIdByUsername(final String username) {
+        Optional<Player> playerInDatabase = playerDatabaseRepository
+                .findPlayerByUsername(username);
+        if (playerInDatabase.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        }
         return playerInDatabase.get().getId();
     }
 }

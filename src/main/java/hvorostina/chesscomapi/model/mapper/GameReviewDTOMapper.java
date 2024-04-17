@@ -14,15 +14,20 @@ import java.time.ZonedDateTime;
 import java.util.function.Function;
 
 @Component
-public class GameReviewDTOMapper implements Function<GameReview, GameReviewDTO> {
+public final class GameReviewDTOMapper implements
+        Function<GameReview, GameReviewDTO> {
     @Override
-    public GameReviewDTO apply(GameReview gameReview) {
+    public GameReviewDTO apply(final GameReview gameReview) {
         ZoneId zoneId = ZoneId.of("Europe/Minsk");
-        ZonedDateTime actualDateTime = gameReview.getBestGame().getData().atZone(zoneId);
+        ZonedDateTime actualDateTime = gameReview.getBestGame()
+                .getData().atZone(zoneId);
         try {
             return GameReviewDTO.builder()
                     .timeClass(gameReview.getTimeClass())
-                    .bestGameURL((new URI(gameReview.getBestGame().getGameURL())).toURL())
+                    .bestGameURL((new URI(gameReview
+                            .getBestGame()
+                            .getGameURL()))
+                            .toURL())
                     .bestGameUuid(gameReview.getBestGame().getUuid())
                     .bestGameDate(actualDateTime)
                     .winCasesRecord(gameReview.getWinCasesRecord())

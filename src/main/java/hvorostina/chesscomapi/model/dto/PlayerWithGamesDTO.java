@@ -13,9 +13,9 @@ import java.util.List;
 @Setter
 public class PlayerWithGamesDTO {
     @JsonProperty("player_username")
-    String username;
+    private String username;
     @JsonProperty("player_account_url")
-    URL userAccount;
+    private URL userAccount;
     @JsonProperty("player_game_list")
-    List<GameDTOWithDate> games;
+    private List<GameDTOWithDate> games;
 }

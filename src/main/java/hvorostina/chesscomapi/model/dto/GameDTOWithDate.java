@@ -11,10 +11,10 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameDTOWithDate {
-    URL gameURL;
-    String uuid;
-    ZonedDateTime endGameTimeDate;
-    String timeClass;
-    PlayerInGameDTO whitePlayer;
-    PlayerInGameDTO blackPlayer;
+    private URL gameURL;
+    private String uuid;
+    private ZonedDateTime endGameTimeDate;
+    private String timeClass;
+    private PlayerInGameDTO whitePlayer;
+    private PlayerInGameDTO blackPlayer;
 }

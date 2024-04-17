@@ -26,30 +26,38 @@ public class DatabasePlayerController {
         return playerService.findAllPlayers();
     }
     @GetMapping("/find")
-    public ResponseEntity<PlayerDTO> findUserByUsername(@RequestParam String username){
-        PlayerDTO player = playerService.findPlayerByUsernameAndSaveInCache(username);
+    public ResponseEntity<PlayerDTO> findUserByUsername(
+            final @RequestParam String username) {
+        PlayerDTO player = playerService
+                .findPlayerByUsernameAndSaveInCache(username);
         return new ResponseEntity<>(player, HttpStatus.OK);
     }
     @PostMapping("/add")
-    public ResponseEntity<PlayerDTO> addUser(@RequestBody PlayerDTO playerDTO) {
+    public ResponseEntity<PlayerDTO> addUser(
+            final @RequestBody PlayerDTO playerDTO) {
         Player player = playerMapper.apply(playerDTO);
         PlayerDTO savedPlayer = playerService.addPlayer(player);
         return new ResponseEntity<>(savedPlayer, HttpStatus.CREATED);
     }
     @PatchMapping("/update")
-    public ResponseEntity<PlayerDTO> updateUser(@RequestBody PlayerDTO playerDTO)
-            throws HttpClientErrorException{
-        PlayerDTO updatedPlayer = playerService.updatePlayerAndSaveInCache(playerDTO);
-        if(updatedPlayer == null)
+    public ResponseEntity<PlayerDTO> updateUser(
+            final @RequestBody PlayerDTO playerDTO)
+            throws HttpClientErrorException {
+        PlayerDTO updatedPlayer = playerService
+                .updatePlayerAndSaveInCache(playerDTO);
+        if (updatedPlayer == null) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
     }
     @DeleteMapping("/delete")
-    public HttpStatus deleteUser(@RequestParam String username)
-            throws HttpClientErrorException{
+    public HttpStatus deleteUser(
+            final @RequestParam String username)
+            throws HttpClientErrorException {
         Player player = playerService.findPlayerEntityByUsername(username);
-        if(player == null)
+        if (player == null) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
         gameReviewService.deleteAllReviewsByPlayer(player);
         playerService.deletePlayer(player);
         return HttpStatus.OK;

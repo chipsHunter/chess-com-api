@@ -11,13 +11,13 @@ import lombok.*;
 @AllArgsConstructor
 public class HttpExceptionDTO {
     @JsonProperty("exception")
-    String exceptionName;
+    private String exceptionName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("request")
-    String request;
+    private String request;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("method")
-    String exceptionInfo;
+    private String exceptionInfo;
     @JsonProperty("time")
-    String time;
+    private String time;
 }

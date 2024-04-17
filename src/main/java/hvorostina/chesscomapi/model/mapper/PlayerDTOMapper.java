@@ -12,13 +12,14 @@ import java.net.URISyntaxException;
 import java.util.function.Function;
 
 @Component
-public class PlayerDTOMapper implements Function<Player, PlayerDTO> {
+public final class PlayerDTOMapper implements Function<Player, PlayerDTO> {
     @Override
-    public PlayerDTO apply(Player player) {
+    public PlayerDTO apply(final Player player) {
         try {
             return PlayerDTO.builder()
                     .id(player.getId())
-                    .userAccount((new URI("https://api.chess.com/pub/player/".concat(player.getUsername()))).toURL())
+                    .userAccount((new URI("https://api.chess.com/pub/player/"
+                            .concat(player.getUsername()))).toURL())
                     .username(player.getUsername())
                     .status(player.getStatus())
                     .country(player.getCountry())

@@ -10,10 +10,10 @@
 
 <logger name="hvorostina.chesscomapi.logger.LoggerAspect" level="INFO" additivity="false">
     <appender-ref ref="FILE"/>
-    <appender-ref ref="CONSOLE"/>
+    <!--appender-ref ref="CONSOLE"/-->
 </logger>
 
 <root level="INFO">
-    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
 </root>
 </configuration>

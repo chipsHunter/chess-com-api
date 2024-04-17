@@ -6,25 +6,27 @@ import lombok.Data;
 @Entity
 @Data
 public class GameReview {
+    private static final int ALLOCATION_SIZE = 10;
     @Id
     @SequenceGenerator(name = "review_sequence_generator",
             sequenceName = "general_sequence",
-            initialValue = 1, allocationSize = 10)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "review_sequence_generator")
+            initialValue = 1, allocationSize = ALLOCATION_SIZE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "review_sequence_generator")
     @Column(name = "id")
-    Integer id;
+    private Integer id;
     @Column(name = "time_class")
-    String timeClass;
+    private String timeClass;
     @Column(name = "best_rating")
-    Integer bestRating = 0;
+    private Integer bestRating = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer winCasesRecord = 0;
+    private Integer winCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer lossCasesRecord = 0;
+    private Integer lossCasesRecord = 0;
     @Column(nullable = false, columnDefinition = "integer default 0")
-    Integer drawCasesRecord = 0;
+    private Integer drawCasesRecord = 0;
     @ManyToOne
-    Player user;
+    private Player user;
     @ManyToOne
-    Game bestGame;
+    private Game bestGame;
 }

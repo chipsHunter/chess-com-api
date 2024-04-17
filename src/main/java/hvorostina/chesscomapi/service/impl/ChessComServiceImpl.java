@@ -6,6 +6,7 @@ import hvorostina.chesscomapi.service.ChessComService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @AllArgsConstructor
 @Service
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service;
 public class ChessComServiceImpl implements ChessComService {
     private final ChessComAPI api;
     @Override
-    public JsonNode getUserByUsername(String username) {
+    public JsonNode getUserByUsername(
+            final @RequestParam String username) {
         return api.getUserByUsername(username);
     }
 }

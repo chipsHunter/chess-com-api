@@ -19,22 +19,30 @@ public class DatabaseGameReviewController {
     private final GameReviewService gameReviewService;
     private final PlayerService playerService;
     @GetMapping("/find_all")
-    List<GameReviewDTO> checkPlayerStatistics(@RequestParam String username) {
+    public List<GameReviewDTO> checkPlayerStatistics(
+            final @RequestParam String username) {
         Player player = playerService.findPlayerEntityByUsername(username);
-        if(player == null)
+        if (player == null) {
             return List.of();
+        }
         return gameReviewService.viewPlayerStatistics(player);
     }
     @PatchMapping("/patch")
-    public ResponseEntity<String> patchPlayerStatistics(@RequestBody GameDTO game) {
-        return new ResponseEntity<>("You can't call this method", HttpStatus.METHOD_NOT_ALLOWED);
+    public ResponseEntity<String> patchPlayerStatistics(
+            final @RequestBody GameDTO game) {
+        return new ResponseEntity<>("You can't call this method",
+                HttpStatus.METHOD_NOT_ALLOWED);
     }
     @PostMapping("/add")
-    public ResponseEntity<String> addPlayerStatistics(@RequestBody GameDTO game) {
-        return new ResponseEntity<>("You can't call this method", HttpStatus.METHOD_NOT_ALLOWED);
+    public ResponseEntity<String> addPlayerStatistics(
+            final @RequestBody GameDTO game) {
+        return new ResponseEntity<>("You can't call this method",
+                HttpStatus.METHOD_NOT_ALLOWED);
     }
     @DeleteMapping("/delete")
-    public HttpStatus deletePlayerStatistics(@RequestParam String gameType, @RequestParam String username) {
+    public HttpStatus deletePlayerStatistics(
+            final @RequestParam String gameType,
+            final @RequestParam String username) {
         return HttpStatus.METHOD_NOT_ALLOWED;
     }
     @DeleteMapping("/test/delete_all")

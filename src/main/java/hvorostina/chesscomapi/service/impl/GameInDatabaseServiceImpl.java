@@ -34,52 +34,64 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     private final RequestGamesCacheServiceImpl cacheService;
     @Override
-    public GameDTOWithDate addGame(Game game) {
-        if (gameRepository.findGameByUuid(game.getUuid()).isEmpty())
+    public GameDTOWithDate addGame(final Game game) {
+        if (gameRepository.findGameByUuid(game.getUuid()).isEmpty()) {
             gameRepository.save(game);
+        }
         return gameDTOWithDateMapper.apply(game);
     }
     @Override
     @AspectAnnotation
-    public Game getByUuid(String uuid) {
+    public Game getByUuid(final String uuid) {
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         return game.orElseThrow(() ->
                 new HttpClientErrorException(HttpStatus.NOT_FOUND));
     }
     @Override
     @AspectAnnotation
-    public GameDTOWithDate updateGameResult(GameDTO fields) {
-        Optional<Game> updatedGame = gameRepository.findGameByUuid(fields.getUuid());
-        if (updatedGame.isEmpty())
+    public GameDTOWithDate updateGameResult(final GameDTO fields) {
+        Optional<Game> updatedGame = gameRepository
+                .findGameByUuid(fields.getUuid());
+        if (updatedGame.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
         setFieldsIfSpecified(updatedGame.get(), fields);
         gameRepository.save(updatedGame.get());
-        GameDTOWithDate gameDTOWithDate = gameDTOWithDateMapper.apply(updatedGame.get());
+        GameDTOWithDate gameDTOWithDate = gameDTOWithDateMapper
+                .apply(updatedGame.get());
         cacheService.saveOrUpdateByUuid(gameDTOWithDate);
         return gameDTOWithDate;
     }
-    private void setFieldsIfSpecified(Game updatedGame, GameDTO fields) {
+    private void setFieldsIfSpecified(
+            final Game updatedGame, final GameDTO fields) {
         setDataIfSpecified(updatedGame, fields);
         setURLIfSpecified(updatedGame, fields);
     }
-    private void setDataIfSpecified(Game updatedGame, GameDTO fields) {
+    private void setDataIfSpecified(
+            final Game updatedGame, final GameDTO fields) {
         if (fields.getGameTimestamp() != null) {
             Instant instant = Instant.ofEpochSecond(fields.getGameTimestamp());
-            LocalDateTime data = LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Minsk"));
+            LocalDateTime data = LocalDateTime
+                    .ofInstant(instant, ZoneId.of("Europe/Minsk"));
             updatedGame.setData(data);
         }
     }
-    private void setURLIfSpecified(Game updatedGame, GameDTO fields) {
-        if (fields.getGameURL() != null)
+    private void setURLIfSpecified(
+            final Game updatedGame, final GameDTO fields) {
+        if (fields.getGameURL() != null) {
             updatedGame.setGameURL(fields.getGameURL());
+        }
     }
 
     @Override
     @AspectAnnotation
-    public List<GameDTOWithDate> findAllGamesByUsername(String username) {
-        Optional<Player> player = playerRepository.findPlayerByUsername(username);
-        if(player.isEmpty())
+    public List<GameDTOWithDate> findAllGamesByUsername(
+            final String username) {
+        Optional<Player> player = playerRepository
+                .findPlayerByUsername(username);
+        if (player.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
         List<Game> playerGames = player.get().getGames();
         List<GameDTOWithDate> playerGameDTOsForCache = playerGames.stream()
                 .map(gameDTOWithDateMapper)
@@ -90,20 +102,26 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     @AspectAnnotation
-    public List<GameDTOWithDate> findGamesByUserBetweenDates(Integer id, LocalDateTime start, LocalDateTime end) {
-        List<Game> games = gameRepository.findGamesByPlayerInPeriod(id, start, end);
+    public List<GameDTOWithDate> findGamesByUserBetweenDates(
+            final Integer id,
+            final LocalDateTime start,
+            final LocalDateTime end) {
+        List<Game> games = gameRepository
+                .findGamesByPlayerInPeriod(id, start, end);
         return games.stream().map(gameDTOWithDateMapper).toList();
     }
 
     @Override
     @AspectAnnotation
-    public GameDTOWithDate findGameByUUID(String uuid) {
+    public GameDTOWithDate findGameByUUID(final String uuid) {
         GameDTOWithDate gameInCache = cacheService.getByUuid(uuid);
-        if(gameInCache != null)
+        if (gameInCache != null) {
             return gameInCache;
+        }
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
-        if(game.isEmpty())
+        if (game.isEmpty()) {
             throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
+        }
         GameDTOWithDate gameDTO = gameDTOWithDateMapper.apply(game.get());
         cacheService.saveOrUpdateByUuid(gameDTO);
         return gameDTO;
@@ -118,10 +136,11 @@ public class GameInDatabaseServiceImpl implements GameService {
 
     @Override
     @AspectAnnotation
-    public void deleteGame(String uuid) {
+    public void deleteGame(final String uuid) {
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
-        if(game.isEmpty())
+        if (game.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        }
         cacheService.deleteByUuid(uuid);
         gameRepository.delete(game.get());
     }

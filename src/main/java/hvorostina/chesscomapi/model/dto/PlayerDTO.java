@@ -13,13 +13,13 @@ import java.net.URL;
 public class PlayerDTO {
     @Nullable
     @JsonProperty("player_id")
-    Integer id;
+    private Integer id;
     @JsonProperty("username")
-    String username;
+    private String username;
     @JsonProperty("url")
-    URL userAccount;
+    private URL userAccount;
     @JsonProperty("country")
-    String country;
+    private String country;
     @JsonProperty("status")
-    String status;
+    private String status;
 }

@@ -18,10 +18,11 @@ import java.util.function.Function;
 
 @AllArgsConstructor
 @Component
-public class GameDTOWithDateMapper implements Function<Game, GameDTOWithDate> {
+public final class GameDTOWithDateMapper implements
+        Function<Game, GameDTOWithDate> {
     private final PlayersInGameDTOMapper playersInGameDTOMapper;
     @Override
-    public GameDTOWithDate apply(Game game) {
+    public GameDTOWithDate apply(final Game game) {
         ZoneId zoneId = ZoneId.of("Europe/Minsk");
         ZonedDateTime actualDateTime = game.getData().atZone(zoneId);
         List<PlayerInGameDTO> players = playersInGameDTOMapper.apply(game);
