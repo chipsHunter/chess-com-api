@@ -1,6 +1,7 @@
 package hvorostina.chesscomapi.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.util.List;
@@ -29,6 +30,6 @@ public class Player {
     )
     private List<Game> games;
     @OneToMany(cascade = {CascadeType.REMOVE, CascadeType.DETACH},
-            orphanRemoval = true, mappedBy = "user")
+            mappedBy = "user")
     private List<GameReview> gameReviews;
 }

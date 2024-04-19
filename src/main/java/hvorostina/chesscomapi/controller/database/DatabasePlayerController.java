@@ -6,11 +6,13 @@ import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class DatabasePlayerController {
     }
     @PostMapping("/add")
     public ResponseEntity<PlayerDTO> addUser(
-            final @RequestBody PlayerDTO playerDTO) {
+            final @Valid @RequestBody PlayerDTO playerDTO) {
         Player player = playerMapper.apply(playerDTO);
         PlayerDTO savedPlayer = playerService.addPlayer(player);
         return new ResponseEntity<>(savedPlayer, HttpStatus.CREATED);
@@ -65,5 +67,9 @@ public class DatabasePlayerController {
     @GetMapping("/all_players_with_games")
     public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
         return playerService.getAllPlayersWithGames();
+    }
+    @GetMapping("/internal_server_error")
+    public void InternalServerErrorException() {
+        throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
