@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -29,6 +30,16 @@ public class CustomHttpExceptionHandler
                 .build();
         return new ResponseEntity<>(exceptionDTO, status);
     }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
+                .exceptionName(ex.getMessage())
+                .time(LocalDateTime.now().toString())
+                .build();
+        return new ResponseEntity<>(exceptionDTO, ex.getStatusCode());
+    }
+
     @ExceptionHandler(HttpClientErrorException.class)
     protected ResponseEntity<Object> handleAllHttpClientErrorExceptions(
             final HttpClientErrorException ex, final WebRequest request) {
