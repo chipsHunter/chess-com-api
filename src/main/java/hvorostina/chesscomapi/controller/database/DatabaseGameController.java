@@ -5,6 +5,7 @@ import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.dto.UserGamesInPeriodRequestDTO;
+import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.model.mapper.GameMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.GameService;
@@ -13,7 +14,14 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDateTime;
@@ -28,6 +36,7 @@ public class DatabaseGameController {
     private final GameReviewService gameReviewService;
     private final PlayerService playerService;
     private final GameMapper gameMapper;
+    private final GameDTOWithDateMapper gameDTOMapper;
     @PostMapping("/add")
     public ResponseEntity<GameDTOWithDate> addGame(
             final @RequestBody GameDTO gameDTO) {
@@ -65,13 +74,15 @@ public class DatabaseGameController {
     @PatchMapping("/update")
     public ResponseEntity<GameDTOWithDate> updateGame(
             final @RequestBody GameDTO gameDTO) {
-        GameDTOWithDate updateGame = gameService.updateGameResult(gameDTO);
-        return new ResponseEntity<>(updateGame, HttpStatus.OK);
+        Game updatedGame = gameService.updateGameResult(gameDTO);
+        GameDTOWithDate updatedGameDTO = gameDTOMapper.apply(updatedGame);
+        return new ResponseEntity<>(updatedGameDTO, HttpStatus.OK);
     }
     @GetMapping("/find_all")
     public List<GameDTOWithDate> findAllGames(
             final @RequestParam String username) {
-        return gameService.findAllGamesByUsername(username.toLowerCase());
+        List<Game> userGames = gameService.findAllGamesByUsername(username.toLowerCase());
+        return userGames.stream().map(gameDTOMapper).toList();
     }
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(

@@ -232,11 +232,11 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         if (playerGameResults.getGameResult().equals(LOSS)
                 || playerGameResults.getGameResult().equals(CHECKMATED)) {
             int loss = review.getLossCasesRecord();
-            review.setWinCasesRecord(loss + method);
+            review.setLossCasesRecord(loss + method);
         }
         if (playerGameResults.getGameResult().equals(DRAW)) {
             int draws = review.getDrawCasesRecord();
-            review.setWinCasesRecord(draws + method);
+            review.setDrawCasesRecord(draws + method);
         }
     }
     @AspectAnnotation
