@@ -49,7 +49,7 @@ public class GameInDatabaseServiceImpl implements GameService {
     }
     @Override
     @AspectAnnotation
-    public GameDTOWithDate updateGameResult(final GameDTO fields) {
+    public Game updateGameResult(final GameDTO fields) {
         Optional<Game> updatedGame = gameRepository
                 .findGameByUuid(fields.getUuid());
         if (updatedGame.isEmpty()) {
@@ -57,12 +57,10 @@ public class GameInDatabaseServiceImpl implements GameService {
         }
         setFieldsIfSpecified(updatedGame.get(), fields);
         gameRepository.save(updatedGame.get());
-        GameDTOWithDate gameDTOWithDate = gameDTOWithDateMapper
-                .apply(updatedGame.get());
-        cacheService.saveOrUpdateByUuid(gameDTOWithDate);
-        return gameDTOWithDate;
+        saveInCacheGame(updatedGame);
+        return updatedGame.get();
     }
-    private void setFieldsIfSpecified(
+    public void setFieldsIfSpecified(
             final Game updatedGame, final GameDTO fields) {
         setDataIfSpecified(updatedGame, fields);
         setURLIfSpecified(updatedGame, fields);
@@ -82,10 +80,16 @@ public class GameInDatabaseServiceImpl implements GameService {
             updatedGame.setGameURL(fields.getGameURL());
         }
     }
+    private void saveInCacheGame(final Optional<Game> game) {
+        GameDTOWithDate gameDTOWithDate = game.map(gameDTOWithDateMapper)
+                .orElseThrow(() ->
+                        new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+        cacheService.saveOrUpdateByUuid(gameDTOWithDate);
+    }
 
     @Override
     @AspectAnnotation
-    public List<GameDTOWithDate> findAllGamesByUsername(
+    public List<Game> findAllGamesByUsername(
             final String username) {
         Optional<Player> player = playerRepository
                 .findPlayerByUsername(username);
@@ -93,11 +97,14 @@ public class GameInDatabaseServiceImpl implements GameService {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
         List<Game> playerGames = player.get().getGames();
-        List<GameDTOWithDate> playerGameDTOsForCache = playerGames.stream()
+        saveInCacheByUser(username, playerGames);
+        return playerGames;
+    }
+    private void saveInCacheByUser(String username, List<Game> games) {
+        List<GameDTOWithDate> playerGameDTOsForCache = games.stream()
                 .map(gameDTOWithDateMapper)
                 .toList();
         cacheService.saveByUser(username, playerGameDTOsForCache);
-        return playerGameDTOsForCache;
     }
 
     @Override
@@ -120,7 +127,7 @@ public class GameInDatabaseServiceImpl implements GameService {
         }
         Optional<Game> game = gameRepository.findGameByUuid(uuid);
         if (game.isEmpty()) {
-            throw new HttpServerErrorException(HttpStatus.NOT_FOUND);
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
         GameDTOWithDate gameDTO = gameDTOWithDateMapper.apply(game.get());
         cacheService.saveOrUpdateByUuid(gameDTO);

@@ -14,7 +14,7 @@ public final class PlayersInGameDTOMapper implements
     @Override
     public List<PlayerInGameDTO> apply(final Game game) {
         if (game.getPlayers() == null || game.getPlayers().isEmpty()) {
-            return List.of();
+            return List.of(new PlayerInGameDTO(), new PlayerInGameDTO());
         }
         List<PlayerInGameDTO> playersInGameDTO = new ArrayList<>();
         PlayerInGameDTO whitePlayer = PlayerInGameDTO.builder()

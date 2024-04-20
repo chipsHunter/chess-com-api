@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface GameService {
     GameDTOWithDate addGame(Game game);
-    GameDTOWithDate updateGameResult(GameDTO fields);
-    List<GameDTOWithDate> findAllGamesByUsername(String username);
+    Game updateGameResult(GameDTO fields);
+    List<Game> findAllGamesByUsername(String username);
     List<GameDTOWithDate> findGamesByUserBetweenDates(
             Integer id, LocalDateTime start, LocalDateTime end);
     GameDTOWithDate findGameByUUID(String uuid);
