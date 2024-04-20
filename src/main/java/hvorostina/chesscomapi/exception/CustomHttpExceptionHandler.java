@@ -33,7 +33,11 @@ public class CustomHttpExceptionHandler
     }
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            final MethodArgumentNotValidException ex,
+            final HttpHeaders headers,
+            final HttpStatusCode status,
+            final WebRequest request) {
         HttpExceptionDTO exceptionDTO =  HttpExceptionDTO.builder()
                 .exceptionName(ex.getMessage())
                 .time(LocalDateTime.now().toString())

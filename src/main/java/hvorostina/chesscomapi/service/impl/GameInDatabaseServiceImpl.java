@@ -83,7 +83,8 @@ public class GameInDatabaseServiceImpl implements GameService {
     private void saveInCacheGame(final Optional<Game> game) {
         GameDTOWithDate gameDTOWithDate = game.map(gameDTOWithDateMapper)
                 .orElseThrow(() ->
-                        new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+                        new HttpServerErrorException(
+                                HttpStatus.INTERNAL_SERVER_ERROR));
         cacheService.saveOrUpdateByUuid(gameDTOWithDate);
     }
 
@@ -100,7 +101,9 @@ public class GameInDatabaseServiceImpl implements GameService {
         saveInCacheByUser(username, playerGames);
         return playerGames;
     }
-    private void saveInCacheByUser(String username, List<Game> games) {
+    private void saveInCacheByUser(
+            final String username,
+            final List<Game> games) {
         List<GameDTOWithDate> playerGameDTOsForCache = games.stream()
                 .map(gameDTOWithDateMapper)
                 .toList();

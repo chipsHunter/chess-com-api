@@ -81,7 +81,8 @@ public class DatabaseGameController {
     @GetMapping("/find_all")
     public List<GameDTOWithDate> findAllGames(
             final @RequestParam String username) {
-        List<Game> userGames = gameService.findAllGamesByUsername(username.toLowerCase());
+        List<Game> userGames = gameService
+                .findAllGamesByUsername(username.toLowerCase());
         return userGames.stream().map(gameDTOMapper).toList();
     }
     @DeleteMapping("/delete")
