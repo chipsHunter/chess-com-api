@@ -103,6 +103,7 @@ public class DatabaseGameController {
         gameService.deleteGame(uuid);
         return HttpStatus.OK;
     }
+
     @DeleteMapping("/delete_all")
     public HttpStatus deleteAllGames() {
         gameReviewService.deleteAllReviews();
