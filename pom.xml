@@ -18,9 +18,9 @@
         <sonar.organization>chipshunter</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.sources>src</sonar.sources>
-        <sonar.exclusions>hvorostina.chesscomapi.model.*, hvorostina.chesscomapi.chess_com_api.*, hvorostina.chesscomapi.controller.*,
-        hvorostina.chesscomapi.annotations.*, hvorostina.chesscomapi.exception.*, hvorostina.chesscomapi.in_memory_cache.*,
-        hvorostina.chesscomapi.logger.*, hvorostina.chesscomapi.repository.*</sonar.exclusions>
+        <sonar.exclusions>hvorostina.chesscomapi.model.**.java, hvorostina.chesscomapi.chess_com_api.ChessComAPI, hvorostina.chesscomapi.controller.**.java,
+        hvorostina.chesscomapi.annotations.AspectAnnotation, hvorostina.chesscomapi.exception.*.java, hvorostina.chesscomapi.in_memory_cache.*.java,
+        hvorostina.chesscomapi.logger.*.java, hvorostina.chesscomapi.repository.*.java</sonar.exclusions>
         <!--<sonar.projectKey>chipsHunter</sonar.projectKey>-->
     </properties>
     <dependencies>
