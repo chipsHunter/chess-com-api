@@ -41,7 +41,8 @@ public class DatabaseGameController {
     public ResponseEntity<GameDTOWithDate> addGame(
             final @RequestBody GameDTO gameDTO) {
         Game gameToAdd = gameMapper.apply(gameDTO);
-        GameDTOWithDate addedGame = gameService.addGame(gameToAdd);
+        Game addedToDatabaseGame = gameService.addGame(gameToAdd);
+        GameDTOWithDate addedGame = gameDTOMapper.apply(addedToDatabaseGame);
         String whitePlayerUsername = addedGame.getWhitePlayer().getUsername();
         Player whitePlayer = playerService
                 .findPlayerEntityByUsername(whitePlayerUsername);

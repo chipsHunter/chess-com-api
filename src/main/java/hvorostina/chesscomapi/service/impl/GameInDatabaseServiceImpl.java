@@ -5,7 +5,6 @@ import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
@@ -37,11 +36,11 @@ public class GameInDatabaseServiceImpl implements GameService {
     private final GameReviewRepository gameReviewRepository;
     private final RequestGamesCacheServiceImpl cacheService;
     @Override
-    public GameDTOWithDate addGame(final Game game) {
+    public Game addGame(final Game game) {
         if (gameRepository.findGameByUuid(game.getUuid()).isEmpty()) {
             gameRepository.save(game);
         }
-        return gameDTOWithDateMapper.apply(game);
+        return game;
     }
     @Override
     @AspectAnnotation

@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -30,14 +31,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GameInDatabaseServiceImplTest {
     @Mock
     GameRepository gameRepository;
-    @Mock
-    GameDTOWithDateMapper gameDTOWithDateMapper;
     @Mock
     RequestGamesCacheServiceImpl gamesCacheService;
     @Mock
@@ -47,7 +46,6 @@ class GameInDatabaseServiceImplTest {
 
     private String testUuid;
     private Game testGame;
-    private GameDTOWithDate testGameResponse;
 
     @BeforeEach
     void initializeTestGame() throws URISyntaxException, MalformedURLException {
@@ -66,18 +64,28 @@ class GameInDatabaseServiceImplTest {
                 .data(testTime)
                 .winnerSide("black")
                 .build();
-        testGameResponse = GameDTOWithDate.builder()
-                .gameURL((new URI(testURL)).toURL())
-                .endGameTimeDate(testTime.atZone(ZoneId.of("Europe/Minsk")))
-                .blackPlayer(new PlayerInGameDTO())
-                .whitePlayer(new PlayerInGameDTO())
-                .timeClass("blitz")
-                .uuid(testUuid)
-                .build();
     }
 
     @Test
-    void whenGet_uuidExist_fromDatabase_thenGetGame(){
+    void whenAdd_GameExist_thenSaveNothing() {
+        when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.of(testGame));
+
+        gameService.addGame(testGame);
+
+        verify(gameRepository, times(0)).save(any(Game.class));
+    }
+
+    @Test
+    void whenAdd_GameNotExist_thenAddItToDatabase() {
+        when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.empty());
+
+        gameService.addGame(testGame);
+
+        verify(gameRepository, times(1)).save(any(Game.class));
+    }
+
+    @Test
+    void whenGet_uuidExist_fromDatabase_thenGetGame() {
         when(gameRepository.findGameByUuid(testUuid))
                 .thenReturn(Optional.of(testGame));
         when(gamesCacheService.getByUuid(testUuid)).thenReturn(null);
@@ -175,5 +183,44 @@ class GameInDatabaseServiceImplTest {
 
         assertEquals(reallyChangedGame.getGameURL(), newTestURL);
         assertEquals(reallyChangedGame.getData(), newDateTime);
+    }
+    @Test
+    void getUserGamesBetweenDates_userWithIdExist_thenReturnTheirGames() {
+        int testPlayerId = 1;
+        List<Game> testListOfPlayerGames = List.of(testGame);
+        LocalDateTime firstDate = LocalDateTime.of(2005, Month.MAY, 24, 11, 0);
+        LocalDateTime secondDate = LocalDateTime.of(2005, Month.MAY, 28, 17, 50);
+        when(gameRepository.findGamesByPlayerInPeriod(testPlayerId, firstDate, secondDate)).thenReturn(testListOfPlayerGames);
+
+        List<Game> reallyReturnedList = gameService.findGamesByUserBetweenDates(testPlayerId, firstDate, secondDate);
+
+        assertEquals(testListOfPlayerGames, reallyReturnedList);
+    }
+    @Test
+    void getUserGamesBetweenDates_userWithIdNotExist_thenReturnNothing() {
+        int testPlayerId = 1;
+        LocalDateTime firstDate = LocalDateTime.of(2005, Month.MAY, 24, 11, 0);
+        LocalDateTime secondDate = LocalDateTime.of(2005, Month.MAY, 28, 17, 50);
+        when(gameRepository.findGamesByPlayerInPeriod(testPlayerId, firstDate, secondDate)).thenReturn(List.of());
+
+        List<Game> reallyReturnedList = gameService.findGamesByUserBetweenDates(testPlayerId, firstDate, secondDate);
+
+        assertEquals(reallyReturnedList.size(), 0);
+    }
+    @Test
+    void deleteGame_UuidExist_thenDeleteGame() {
+        when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.of(testGame));
+
+        gameService.deleteGame(testUuid);
+
+        verify(gamesCacheService, times(1)).deleteByUuid(testUuid);
+        verify(gameRepository, times(1)).delete(testGame);
+    }
+    @Test
+    void deleteGame_UuidNotExist_thenThrowBadRequest() {
+        when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.empty());
+
+        assertThrows(HttpClientErrorException.class, () ->
+                gameService.deleteGame(testUuid));
     }
 }
