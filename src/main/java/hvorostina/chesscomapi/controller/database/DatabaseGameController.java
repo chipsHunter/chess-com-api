@@ -109,5 +109,4 @@ public class DatabaseGameController {
         gameService.deleteAllGames();
         return HttpStatus.OK;
     }
-    //some fucking commijt
 }
