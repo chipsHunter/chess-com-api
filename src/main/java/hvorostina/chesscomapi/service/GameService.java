@@ -11,10 +11,9 @@ public interface GameService {
     GameDTOWithDate addGame(Game game);
     Game updateGameResult(GameDTO fields);
     List<Game> findAllGamesByUsername(String username);
-    List<GameDTOWithDate> findGamesByUserBetweenDates(
+    List<Game> findGamesByUserBetweenDates(
             Integer id, LocalDateTime start, LocalDateTime end);
-    GameDTOWithDate findGameByUUID(String uuid);
-    Game getByUuid(String uuid);
+    Game findGameByUUID(String uuid);
     void deleteGame(String uuid);
     void deleteAllGames();
 }

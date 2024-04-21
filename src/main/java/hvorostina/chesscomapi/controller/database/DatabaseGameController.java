@@ -56,8 +56,9 @@ public class DatabaseGameController {
     @GetMapping("/find")
     public ResponseEntity<GameDTOWithDate> findGameByUUID(
             final @RequestParam String uuid) {
-        GameDTOWithDate foundGame = gameService.findGameByUUID(uuid);
-        return new ResponseEntity<>(foundGame, HttpStatus.OK);
+        Game foundGame = gameService.findGameByUUID(uuid);
+        GameDTOWithDate foundGameDTO = gameDTOMapper.apply(foundGame);
+        return new ResponseEntity<>(foundGameDTO, HttpStatus.OK);
     }
     @GetMapping("/find_in_period")
     public List<GameDTOWithDate> findAllPlayerGamesInPeriod(
@@ -69,7 +70,10 @@ public class DatabaseGameController {
                 .parse(requestDTO.getStartData(), formatter);
         LocalDateTime end = LocalDateTime
                 .parse(requestDTO.getEndData(), formatter);
-        return gameService.findGamesByUserBetweenDates(playerID, start, end);
+        return gameService.findGamesByUserBetweenDates(playerID, start, end)
+                .stream()
+                .map(gameDTOMapper)
+                .toList();
     }
     @PatchMapping("/update")
     public ResponseEntity<GameDTOWithDate> updateGame(
@@ -88,7 +92,8 @@ public class DatabaseGameController {
     @DeleteMapping("/delete")
     public HttpStatusCode deleteGame(
             final @RequestParam String uuid) {
-        GameDTOWithDate gameDTO = gameService.findGameByUUID(uuid);
+        Game game = gameService.findGameByUUID(uuid);
+        GameDTOWithDate gameDTO = gameDTOMapper.apply(game);
         String whitePlayerUsername = gameDTO.getWhitePlayer().getUsername();
         Player whitePlayer = playerService
                 .findPlayerEntityByUsername(whitePlayerUsername);

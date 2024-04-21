@@ -11,21 +11,21 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class RequestGamesCacheServiceImpl {
-    private final RequestCache<List<GameDTOWithDate>> cache;
+    private final RequestCache<List<Game>> cache;
     private static final String PLAYER_GAMES_REQUEST = " games";
     private static final String GAME_BY_UUID_REQUEST = "Game with uuid ";
     public void saveByUser(final String username,
-                           final List<GameDTOWithDate> response) {
+                           final List<Game> response) {
         String query = username + PLAYER_GAMES_REQUEST;
         cache.putQuery(query, response);
     }
     public void updateByUser(final String username,
-                             final List<GameDTOWithDate> response) {
+                             final List<Game> response) {
         String query = username + PLAYER_GAMES_REQUEST;
         cache.updateQuery(query, response);
     }
-    public void saveOrUpdateByUuid(final GameDTOWithDate game) {
-        List<GameDTOWithDate> response = List.of(game);
+    public void saveOrUpdateByUuid(final Game game) {
+        List<Game> response = List.of(game);
         String query = GAME_BY_UUID_REQUEST + game.getUuid();
         cache.putQuery(query, response);
     }
@@ -44,9 +44,9 @@ public class RequestGamesCacheServiceImpl {
     public final void deleteAll() {
         cache.clear();
     }
-    public GameDTOWithDate getByUuid(final String uuid) {
+    public Game getByUuid(final String uuid) {
         String query = GAME_BY_UUID_REQUEST + uuid;
-        List<GameDTOWithDate> response = cache.getResponse(query);
+        List<Game> response = cache.getResponse(query);
         if (response == null) {
             return null;
         }

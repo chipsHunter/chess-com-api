@@ -81,20 +81,19 @@ class GameInDatabaseServiceImplTest {
         when(gameRepository.findGameByUuid(testUuid))
                 .thenReturn(Optional.of(testGame));
         when(gamesCacheService.getByUuid(testUuid)).thenReturn(null);
-        when(gameDTOWithDateMapper.apply(testGame)).thenReturn(testGameResponse);
 
-        GameDTOWithDate reallyFoundGameInDatabase = gameService.findGameByUUID(testUuid);
+        Game reallyFoundGameInDatabase = gameService.findGameByUUID(testUuid);
 
-        assertEquals(testGameResponse, reallyFoundGameInDatabase);
+        assertEquals(testGame, reallyFoundGameInDatabase);
     }
     @Test
     void whenGet_uuidExist_fromCache_thenGetGame(){
 
-        when(gamesCacheService.getByUuid(testUuid)).thenReturn(testGameResponse);
+        when(gamesCacheService.getByUuid(testUuid)).thenReturn(testGame);
 
-        GameDTOWithDate reallyFoundGameInDatabase = gameService.findGameByUUID(testUuid);
+        Game reallyFoundGameInDatabase = gameService.findGameByUUID(testUuid);
 
-        assertEquals(testGameResponse, reallyFoundGameInDatabase);
+        assertEquals(testGame, reallyFoundGameInDatabase);
     }
     @Test
     void whenGet_notExistsUuid_thenThrowNotFoundException(){
@@ -152,7 +151,6 @@ class GameInDatabaseServiceImplTest {
                 .uuid(testUuid)
                 .build();
         when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.of(testGame));
-        when(gameDTOWithDateMapper.apply(any(Game.class))).thenReturn(testGameResponse);
 
         Game reallyChangedGame = gameService.updateGameResult(fields);
 
@@ -172,7 +170,6 @@ class GameInDatabaseServiceImplTest {
                 .gameTimestamp(newTestTimestamp)
                 .build();
         when(gameRepository.findGameByUuid(testUuid)).thenReturn(Optional.of(testGame));
-        when(gameDTOWithDateMapper.apply(any(Game.class))).thenReturn(testGameResponse);
 
         Game reallyChangedGame = gameService.updateGameResult(fields);
 
