@@ -3,10 +3,7 @@ package hvorostina.chesscomapi.logger;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -19,12 +16,18 @@ public class LoggerAspect {
     public void controllerMethods() { }
     @Pointcut("@annotation("
             + "hvorostina.chesscomapi.annotations.AspectAnnotation)")
-    public void serviceMethodWithAnnotation() { }
-    @Pointcut("within(hvorostina.chesscomapi.controller..*)"
-            + " || within(hvorostina.chesscomapi.service..*)"
-            + " || within(hvorostina.chesscomapi.in_memory_cache..*)")
+    public void methodWithAspectAnnotation() { }
+
+    @Pointcut("@annotation("
+            + "hvorostina.chesscomapi.annotations.AspectErrorHandlerAnnotation)")
+    public void methodWithAspectErrorHandlerAnnotation() { }
+    @Pointcut("within(hvorostina.chesscomapi.controller.*.*)"
+            + " || within(hvorostina.chesscomapi.service.*.*)"
+            + " || within(hvorostina.chesscomapi.in_memory_cache..*)"
+            + " || within(hvorostina.chesscomapi.model.*.*)")
     public void allMethods() { }
-    @Around("serviceMethodWithAnnotation()")
+
+    @Around("methodWithAspectAnnotation()")
     public Object logEnteringAPI(final ProceedingJoinPoint joinPoint)
             throws Throwable {
         log.info("Enter: {}.{}() with argument[s] = {}",
@@ -45,11 +48,17 @@ public class LoggerAspect {
             throw e;
         }
     }
-    @AfterThrowing(pointcut = "allMethods()", throwing = "exception")
+    @AfterThrowing(pointcut = "allMethods()",throwing = "exception")
     public void logsExceptionsFromAnyLocation(
             final JoinPoint joinPoint, final Throwable exception) {
         log.error("Exception in : {}.{}() cause = {}",
                 joinPoint.getSignature().getDeclaringTypeName(),
                 joinPoint.getSignature().getName(), exception.getMessage());
+    }
+    @After("methodWithAspectErrorHandlerAnnotation()")
+    public void logsExceptionsFromAnyLocation(
+            final JoinPoint joinPoint) {
+        log.error("Exception {}",
+                joinPoint.getArgs()[0].toString());
     }
 }

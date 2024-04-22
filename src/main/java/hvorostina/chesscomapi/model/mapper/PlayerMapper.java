@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 
 @Component
-public final class PlayerMapper implements Function<PlayerDTO, Player> {
+public class PlayerMapper implements Function<PlayerDTO, Player> {
     @Override
     public Player apply(final PlayerDTO playerDTO) {
         return Player.builder()

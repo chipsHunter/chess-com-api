@@ -1,5 +1,6 @@
 package hvorostina.chesscomapi.exception;
 
+import hvorostina.chesscomapi.annotations.AspectErrorHandlerAnnotation;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 public class CustomHttpExceptionHandler
         extends ResponseEntityExceptionHandler {
     @Override
+    @AspectErrorHandlerAnnotation
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             final HttpMessageNotReadableException ex, final HttpHeaders headers,
             final HttpStatusCode status, final WebRequest request) {
@@ -33,6 +35,7 @@ public class CustomHttpExceptionHandler
     }
 
     @Override
+    @AspectErrorHandlerAnnotation
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             final MethodArgumentNotValidException ex,
             final HttpHeaders headers,
@@ -67,6 +70,7 @@ public class CustomHttpExceptionHandler
     }
 
     @Override
+    @AspectErrorHandlerAnnotation
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
             final HttpRequestMethodNotSupportedException ex,
             final @NonNull HttpHeaders headers,
@@ -81,6 +85,7 @@ public class CustomHttpExceptionHandler
     }
 
     @Override
+    @AspectErrorHandlerAnnotation
     protected ResponseEntity<Object> handleNoResourceFoundException(
             final NoResourceFoundException ex, final HttpHeaders headers,
             final HttpStatusCode status, final WebRequest request) {
@@ -91,6 +96,7 @@ public class CustomHttpExceptionHandler
                 .build();
         return new ResponseEntity<>(exceptionDTO, ex.getStatusCode());
     }
+
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<Object> handleAllExceptions(

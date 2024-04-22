@@ -72,8 +72,17 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         String playerSide = getPlayerSide(game, player);
         PlayerInGameDTO playerResults = playerResults(game, playerSide);
         setGameStat(playerReview, playerResults, DELETE);
-        setPreviousGame(playerReview, gamesWithTimeClass);
+        if (isBestGame(playerReview, playerResults)) {
+            setPreviousGame(playerReview, gamesWithTimeClass);
+        }
         gameReviewRepository.save(playerReview);
+    }
+    private boolean isBestGame(GameReview review, PlayerInGameDTO supposedBestResults) {
+        Game reallyBestGame = review.getBestGame();
+        GameDTOWithDate reallyBestGameDTO = gameDTOMapper.apply(reallyBestGame);
+        String playerSide = getPlayerSide(reallyBestGameDTO, review.getUser());
+        PlayerInGameDTO playerResults = playerResults(reallyBestGameDTO, playerSide);
+        return Objects.equals(playerResults.getRating(), supposedBestResults.getRating());
     }
     @Override
     @AspectAnnotation

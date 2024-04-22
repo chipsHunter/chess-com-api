@@ -14,7 +14,7 @@ import java.time.ZonedDateTime;
 import java.util.function.Function;
 
 @Component
-public final class GameReviewDTOMapper implements
+public class GameReviewDTOMapper implements
         Function<GameReview, GameReviewDTO> {
     @Override
     public GameReviewDTO apply(final GameReview gameReview) {

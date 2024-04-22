@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 import java.util.function.Function;
 
 @Component
-public final class PlayerDTOMapper implements Function<Player, PlayerDTO> {
+public class PlayerDTOMapper implements Function<Player, PlayerDTO> {
     @Override
     public PlayerDTO apply(final Player player) {
         try {

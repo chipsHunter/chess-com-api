@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 @Component
 @AllArgsConstructor
-public final class GameMapper implements Function<GameDTO, Game> {
+public class GameMapper implements Function<GameDTO, Game> {
     private final PlayerRepository playerRepository;
     @Override
     public Game apply(final GameDTO gameDTO) {

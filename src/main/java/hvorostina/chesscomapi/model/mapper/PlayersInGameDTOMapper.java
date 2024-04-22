@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 @Component
-public final class PlayersInGameDTOMapper implements
+public class PlayersInGameDTOMapper implements
         Function<Game, List<PlayerInGameDTO>> {
     @Override
     public List<PlayerInGameDTO> apply(final Game game) {

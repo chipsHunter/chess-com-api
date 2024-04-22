@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 @AllArgsConstructor
 @Component
-public final class GameDTOWithDateMapper implements
+public class GameDTOWithDateMapper implements
         Function<Game, GameDTOWithDate> {
     private final PlayersInGameDTOMapper playersInGameDTOMapper;
     @Override

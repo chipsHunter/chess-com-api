@@ -6,7 +6,6 @@ import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
-import hvorostina.chesscomapi.model.mapper.PlayersInGameDTOMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.service.impl.GameReviewInDatabaseServiceImpl;
@@ -37,9 +36,11 @@ class GameReviewInDatabaseServiceImplTest {
     GameReviewInDatabaseServiceImpl  service;
     @Mock
     GameReviewRepository repository;
-    GameDTOWithDateMapper gameMapper;
     @Mock
     GameRepository gameRepository;
+
+    @Mock
+    GameDTOWithDateMapper mockGameMapper;
 
     private GameReview testReviewForFirstPlayer;
     private GameReview testReviewForSecondPlayer;
@@ -52,7 +53,10 @@ class GameReviewInDatabaseServiceImplTest {
 
     @BeforeEach
     public void initializeTestReview() throws URISyntaxException, MalformedURLException {
-        gameMapper = new GameDTOWithDateMapper(new PlayersInGameDTOMapper());
+        String firstURL = "https://www.chess.com/game/live/1";
+        String secondURL = "https://www.chess.com/game/live/2";
+        String firstUuid = "1b-1b-1b";
+        String secondUuid = "2b-2b-2b";
         LocalDateTime testTime = LocalDateTime.now();
         firstPlayer = Player.builder()
                 .id(1)
@@ -68,8 +72,8 @@ class GameReviewInDatabaseServiceImplTest {
                 .build();
         firstGame = Game.builder()
                 .id(1)
-                .gameURL("https://www.chess.com/game/live/1")
-                .uuid("1b-1b-1b")
+                .gameURL(firstURL)
+                .uuid(firstUuid)
                 .gameResult("loss")
                 .timeClass("blitz")
                 .data(testTime)
@@ -78,10 +82,26 @@ class GameReviewInDatabaseServiceImplTest {
                 .blackRating(101)
                 .winnerSide("white")
                 .build();
+        firstGameDTO = GameDTOWithDate.builder()
+                .gameURL((new URI(firstURL)).toURL())
+                .endGameTimeDate(testTime.atZone(ZoneId.of("Europe/Minsk")))
+                .uuid(firstUuid)
+                .timeClass("blitz")
+                .whitePlayer(PlayerInGameDTO.builder()
+                        .username(firstPlayer.getUsername())
+                        .gameResult("win")
+                        .rating(100)
+                        .build())
+                .blackPlayer(PlayerInGameDTO.builder()
+                        .username(secondPlayer.getUsername())
+                        .gameResult("loss")
+                        .rating(101)
+                        .build())
+                .build();
         secondGame = Game.builder()
                 .id(2)
-                .gameURL("https://www.chess.com/game/live/2")
-                .uuid("2b-2b-2b")
+                .gameURL(secondURL)
+                .uuid(secondUuid)
                 .gameResult("checkmated")
                 .timeClass("blitz")
                 .data(testTime)
@@ -90,7 +110,22 @@ class GameReviewInDatabaseServiceImplTest {
                 .blackRating(140)
                 .winnerSide("white")
                 .build();
-
+        secondGameDTO = GameDTOWithDate.builder()
+                .gameURL((new URI(secondURL)).toURL())
+                .endGameTimeDate(testTime.atZone(ZoneId.of("Europe/Minsk")))
+                .uuid(secondUuid)
+                .timeClass("blitz")
+                .whitePlayer(PlayerInGameDTO.builder()
+                        .username(firstPlayer.getUsername())
+                        .gameResult("win")
+                        .rating(150)
+                        .build())
+                .blackPlayer(PlayerInGameDTO.builder()
+                        .username(secondPlayer.getUsername())
+                        .gameResult("checkmated")
+                        .rating(140)
+                        .build())
+                .build();
         testReviewForFirstPlayer = GameReview.builder()
                 .id(1)
                 .user(firstPlayer)
@@ -134,21 +169,19 @@ class GameReviewInDatabaseServiceImplTest {
     @Test
     void whenAddGame_NoReviewAndUuidNotExist_thenThrowInternalServerErrorException() {
         secondPlayer.setGames(List.of(secondGame));
-        GameDTOWithDate addedGame = gameMapper.apply(secondGame);
 
         when(gameRepository.findGameByUuid(secondGame.getUuid())).thenReturn(Optional.empty());
 
         assertThrows(HttpServerErrorException.class, () ->
-                service.manageGameReviewWhenAddGame(addedGame, secondPlayer));
+                service.manageGameReviewWhenAddGame(secondGameDTO, secondPlayer));
     }
     @Test
     void whenAddGame_NoReviewAndUuidExist_thenCreateReview() {
         secondPlayer.setGames(List.of(secondGame));
-        GameDTOWithDate addedGame = gameMapper.apply(secondGame);
 
         when(gameRepository.findGameByUuid(secondGame.getUuid())).thenReturn(Optional.of(secondGame));
 
-        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(addedGame, secondPlayer);
+        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(secondGameDTO, secondPlayer);
 
         assertEquals(reallyCreatedReview.getBestGame(), testReviewForSecondPlayer.getBestGame());
         assertEquals(reallyCreatedReview.getBestRating(), testReviewForSecondPlayer.getBestRating());
@@ -162,22 +195,20 @@ class GameReviewInDatabaseServiceImplTest {
     void whenAddGame_ReviewExistAndUuidNotExist_thenThrowInternalServerError() {
         firstPlayer.setGames(List.of(firstGame, secondGame));
         firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
-        GameDTOWithDate addedGame = gameMapper.apply(firstGame);
 
         when(gameRepository.findGameByUuid(firstGame.getUuid())).thenReturn(Optional.empty());
 
         assertThrows(HttpServerErrorException.class, () ->
-                service.manageGameReviewWhenAddGame(addedGame, firstPlayer));
+                service.manageGameReviewWhenAddGame(firstGameDTO, firstPlayer));
     }
     @Test
     void whenAddGame_ReviewExistAndGameNotBest_thenUpdateReview() {
         firstPlayer.setGames(List.of(secondGame));
         firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
-        GameDTOWithDate addedGame = gameMapper.apply(firstGame);
 
         when(gameRepository.findGameByUuid(firstGame.getUuid())).thenReturn(Optional.of(firstGame));
 
-        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(addedGame, firstPlayer);
+        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(firstGameDTO, firstPlayer);
 
         assertEquals(reallyCreatedReview.getBestGame(), testReviewForFirstPlayer.getBestGame());
         assertEquals(reallyCreatedReview.getBestRating(), testReviewForFirstPlayer.getBestRating());
@@ -192,11 +223,10 @@ class GameReviewInDatabaseServiceImplTest {
         testReviewForFirstPlayer.setBestRating(100);
         testReviewForFirstPlayer.setBestGame(firstGame);
         firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
-        GameDTOWithDate addedGame = gameMapper.apply(secondGame);
 
         when(gameRepository.findGameByUuid(secondGame.getUuid())).thenReturn(Optional.of(secondGame));
 
-        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(addedGame, firstPlayer);
+        GameReview reallyCreatedReview = service.manageGameReviewWhenAddGame(secondGameDTO, firstPlayer);
 
         assertEquals(reallyCreatedReview.getBestGame(), testReviewForFirstPlayer.getBestGame());
         assertEquals(reallyCreatedReview.getBestRating(), testReviewForFirstPlayer.getBestRating());
@@ -209,28 +239,69 @@ class GameReviewInDatabaseServiceImplTest {
     @Test
     void whenDeleteGame_reviewNotExist_thenThrowInternalServerError() {
         firstPlayer.setGames(List.of(firstGame));
-        GameDTOWithDate addedGame = gameMapper.apply(secondGame);
 
         assertThrows(HttpServerErrorException.class, () ->
-                service.manageGameReviewWhenDeleteGame(addedGame, firstPlayer));
+                service.manageGameReviewWhenDeleteGame(secondGameDTO, firstPlayer));
     }
-/*
     @Test
     void whenDeleteGame_lastInTimeClass_thenDeleteReview() {
         firstPlayer.setGames(List.of(secondGame));
         firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
-        GameDTOWithDate addedGame = gameMapper.apply(secondGame);
 
-        service.manageGameReviewWhenDeleteGame(addedGame, firstPlayer);
+        when(mockGameMapper.apply(any(Game.class))).thenReturn(secondGameDTO);
 
-        verify(gameRepository, times(1)).delete(secondGame);
+        service.manageGameReviewWhenDeleteGame(secondGameDTO, firstPlayer);
+
+        verify(repository, times(1)).delete(testReviewForFirstPlayer);
+    }
+
+    @Test
+    void whenDeleteGame_notLastGameInTimeClassAndNotBestGame_thenUpdateReview() {
+        firstPlayer.setGames(List.of(firstGame, secondGame));
+        testReviewForFirstPlayer.setWinCasesRecord(2);
+        firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
+
+        when(mockGameMapper.apply(firstGame)).thenReturn(firstGameDTO);
+        when(mockGameMapper.apply(secondGame)).thenReturn(secondGameDTO);
+
+        service.manageGameReviewWhenDeleteGame(firstGameDTO, firstPlayer);
+
+        assertEquals(secondGame.getUuid(), firstPlayer.getGameReviews().get(0).getBestGame().getUuid());
+    }
+
+    @Test
+    void whenDeleteGame_notLastGameInTimeClassAndBestGame_thenUpdateBestGameInReview() {
+        firstPlayer.setGames(List.of(firstGame, secondGame));
+        testReviewForFirstPlayer.setWinCasesRecord(2);
+        firstPlayer.setGameReviews(List.of(testReviewForFirstPlayer));
+
+        when(mockGameMapper.apply(firstGame)).thenReturn(firstGameDTO);
+        when(mockGameMapper.apply(secondGame)).thenReturn(secondGameDTO);
+        when(gameRepository.findGameByUuid(firstGame.getUuid())).thenReturn(Optional.of(firstGame));
+
+        service.manageGameReviewWhenDeleteGame(secondGameDTO, firstPlayer);
+
+        assertEquals(firstGame.getUuid(), firstPlayer.getGameReviews().get(0).getBestGame().getUuid());
     }
 
     @Test
     void deleteAllReviewsByPlayer() {
+        List<GameReview> reviews = List.of(testReviewForFirstPlayer);
+        firstPlayer.setGameReviews(reviews);
+
+        doNothing().when(repository).deleteAll(reviews);
+
+        service.deleteAllReviewsByPlayer(firstPlayer);
+
+        verify(repository, times(1)).deleteAll(reviews);
     }
 
     @Test
     void deleteAllReviews() {
-    }*/
+        doNothing().when(repository).deleteAll();
+
+        service.deleteAllReviews();
+
+        verify(repository, times(1)).deleteAll();
+    }
 }
