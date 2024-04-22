@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface PlayerService {
     List<Player> findAllPlayers();
+    List<Player> bulkInsertPlayers(List<Player> players);
     Player addPlayer(Player player);
     Player findPlayerByUsernameAndSaveInCache(String username);
     Player findPlayerEntityByUsername(String username);

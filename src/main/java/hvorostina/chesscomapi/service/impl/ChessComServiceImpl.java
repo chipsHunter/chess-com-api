@@ -6,7 +6,6 @@ import hvorostina.chesscomapi.service.ChessComService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @AllArgsConstructor
 @Service

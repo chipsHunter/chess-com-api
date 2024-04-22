@@ -4,8 +4,6 @@ import hvorostina.chesscomapi.annotations.AspectAnnotation;
 import hvorostina.chesscomapi.in_memory_cache.RequestPlayerCacheServiceImpl;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
-import hvorostina.chesscomapi.model.mapper.PlayerDTOMapper;
-import hvorostina.chesscomapi.model.mapper.PlayerWithGamesDTOMapper;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.Data;
@@ -27,6 +25,11 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     @AspectAnnotation
     public List<Player> findAllPlayers() {
         return playerDatabaseRepository.findAll();
+    }
+    @Override
+    @AspectAnnotation
+    public List<Player> bulkInsertPlayers(List<Player> players) {
+        return playerDatabaseRepository.saveAll(players);
     }
     @Override
     @AspectAnnotation

@@ -41,6 +41,20 @@ public class DatabasePlayerController {
                 .map(playerDTOMapper)
                 .toList();
     }
+    @PostMapping("/save_player_collection")
+    public List<PlayerDTO> savePlayerCollection(
+            final @RequestParam List<PlayerDTO> playersDTOs) {
+        if(playersDTOs.isEmpty())
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        List<Player> players = playersDTOs.stream()
+                .map(playerMapper)
+                .toList();
+        List<Player> savedPlayers = playerService
+                .bulkInsertPlayers(players);
+        return savedPlayers.stream()
+                .map(playerDTOMapper)
+                .toList();
+    }
     @GetMapping("/find")
     public ResponseEntity<PlayerDTO> findUserByUsername(
             final @RequestParam String username) {

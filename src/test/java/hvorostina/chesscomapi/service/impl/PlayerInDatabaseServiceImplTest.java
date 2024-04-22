@@ -45,6 +45,16 @@ class PlayerInDatabaseServiceImplTest {
     }
 
     @Test
+    void savePlayerList() {
+        List<Player> players = List.of(player);
+
+        when(repository.saveAll(players)).thenReturn(players);
+
+        service.bulkInsertPlayers(players);
+
+        verify(repository, times(1)).saveAll(players);
+    }
+    @Test
     void findAllPlayers_noPlayers_thenReturnEmptyList() {
         List<Player> expectedPlayers = List.of();
         when(repository.findAll()).thenReturn(expectedPlayers);
