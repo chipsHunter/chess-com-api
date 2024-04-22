@@ -7,7 +7,6 @@ import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
-import hvorostina.chesscomapi.model.mapper.GameReviewDTOMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
 import hvorostina.chesscomapi.service.GameReviewService;
@@ -162,8 +161,9 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     }
     private Optional<GameReview> getPlayerReviewForTimeClass(
             final Player player, final String timeClass) {
-        if(player.getGameReviews() == null)
+        if (player.getGameReviews() == null) {
             return Optional.empty();
+        }
         return player.getGameReviews().stream()
                 .filter(gameReview1 -> gameReview1
                         .getTimeClass().equals(timeClass))

@@ -203,7 +203,7 @@ class GameInDatabaseServiceImplTest {
 
         List<Game> reallyReturnedList = gameService.findGamesByUserBetweenDates(testPlayerId, firstDate, secondDate);
 
-        assertEquals(reallyReturnedList.size(), 0);
+        assertEquals(0, reallyReturnedList.size());
     }
     @Test
     void deleteGame_UuidExist_thenDeleteGame() {

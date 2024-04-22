@@ -35,7 +35,8 @@ public class DatabaseGameReviewController {
         if (player == null) {
             return List.of();
         }
-        List<GameReview> playerStatistics = gameReviewService.viewPlayerStatistics(player);
+        List<GameReview> playerStatistics =
+                gameReviewService.viewPlayerStatistics(player);
         return  playerStatistics.stream()
                 .map(reviewDTOMapper)
                 .toList();
