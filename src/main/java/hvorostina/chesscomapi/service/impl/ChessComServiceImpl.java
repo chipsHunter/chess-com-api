@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ChessComServiceImpl implements ChessComService {
     private final ChessComAPI api;
     @Override
-    public JsonNode getUserByUsername(
-            final @RequestParam String username) {
+    public JsonNode getUserByUsername(String username) {
         return api.getUserByUsername(username);
     }
 }
