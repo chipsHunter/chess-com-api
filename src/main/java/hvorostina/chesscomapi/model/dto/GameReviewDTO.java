@@ -13,7 +13,7 @@ public class GameReviewDTO {
     private URL bestGameURL;
     private String bestGameUuid;
     private ZonedDateTime bestGameDate;
-    private int winCasesRecord;
-    private int lossCasesRecord;
-    private int drawCasesRecord;
+    private int winCasesRecord = 0;
+    private int lossCasesRecord = 0;
+    private int drawCasesRecord = 0;
 }

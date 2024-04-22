@@ -4,9 +4,6 @@ import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
-import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
-import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
-import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
 import hvorostina.chesscomapi.service.impl.GameInDatabaseServiceImpl;
@@ -19,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,7 +27,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GameInDatabaseServiceImplTest {

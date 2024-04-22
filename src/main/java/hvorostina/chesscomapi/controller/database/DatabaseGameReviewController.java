@@ -1,8 +1,10 @@
 package hvorostina.chesscomapi.controller.database;
 
+import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.model.dto.GameReviewDTO;
+import hvorostina.chesscomapi.model.mapper.GameReviewDTOMapper;
 import hvorostina.chesscomapi.service.GameReviewService;
 import hvorostina.chesscomapi.service.PlayerService;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.List;
 public class DatabaseGameReviewController {
     private final GameReviewService gameReviewService;
     private final PlayerService playerService;
+    private final GameReviewDTOMapper reviewDTOMapper;
     @GetMapping("/find_all")
     public List<GameReviewDTO> checkPlayerStatistics(
             final @RequestParam String username) {
@@ -32,7 +35,10 @@ public class DatabaseGameReviewController {
         if (player == null) {
             return List.of();
         }
-        return gameReviewService.viewPlayerStatistics(player);
+        List<GameReview> playerStatistics = gameReviewService.viewPlayerStatistics(player);
+        return  playerStatistics.stream()
+                .map(reviewDTOMapper)
+                .toList();
     }
     @PatchMapping("/patch")
     public ResponseEntity<String> patchPlayerStatistics(

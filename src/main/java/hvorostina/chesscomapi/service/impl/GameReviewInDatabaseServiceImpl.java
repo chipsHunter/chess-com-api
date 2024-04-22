@@ -5,7 +5,6 @@ import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
-import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.model.mapper.GameReviewDTOMapper;
@@ -27,7 +26,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private final GameReviewRepository gameReviewRepository;
-    private final GameReviewDTOMapper gameReviewDTOMapper;
     private final GameRepository gameRepository;
     private final GameDTOWithDateMapper gameDTOMapper;
     private static final String CHECKMATED = "checkmated";
@@ -40,25 +38,21 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private static final int DELETE = -1;
     @Override
     @AspectAnnotation
-    public List<GameReviewDTO> viewPlayerStatistics(final Player player) {
-        List<GameReview> allReviews = player.getGameReviews();
-        return allReviews.stream()
-                .map(gameReviewDTOMapper)
-                .toList();
+    public List<GameReview> viewPlayerStatistics(final Player player) {
+        return player.getGameReviews();
     }
     @Override
     @AspectAnnotation
-    public GameReviewDTO manageGameReviewWhenAddGame(
+    public GameReview manageGameReviewWhenAddGame(
             final GameDTOWithDate game, final Player player) {
         String playerSide = getPlayerSide(game, player);
         PlayerInGameDTO playerResults = playerResults(game, playerSide);
         Optional<GameReview> playerReview =
                 getPlayerReviewForTimeClass(player, game.getTimeClass());
-        if (playerReview.isPresent()) {
-            return updateGameReviewWhenAddGame(
-                    playerReview.get(), game, playerResults);
-        }
-        return createGameReview(game, player, playerResults);
+        return playerReview.map(gameReview ->
+                updateGameReviewWhenAddGame(gameReview, game, playerResults))
+                .orElseGet(() ->
+                        createGameReview(game, player, playerResults));
     }
     @AspectAnnotation
     public void manageGameReviewWhenDeleteGame(
@@ -81,7 +75,6 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         setGameStat(playerReview, playerResults, DELETE);
         setPreviousGame(playerReview, gamesWithTimeClass);
         gameReviewRepository.save(playerReview);
-        gameReviewDTOMapper.apply(playerReview);
     }
     @Override
     @AspectAnnotation
@@ -146,8 +139,10 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     private List<GameDTOWithDate> playerGamesWithTimeClass(
             final Player player, final String timeClass) {
         List<Game> games = player.getGames();
-        return games.stream()
+        List<Game> suitableGames = games.stream()
                 .filter(game -> isSuitableTimeClass(game, timeClass))
+                .toList();
+        return suitableGames.stream()
                 .map(gameDTOMapper)
                 .toList();
     }
@@ -167,6 +162,8 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
     }
     private Optional<GameReview> getPlayerReviewForTimeClass(
             final Player player, final String timeClass) {
+        if(player.getGameReviews() == null)
+            return Optional.empty();
         return player.getGameReviews().stream()
                 .filter(gameReview1 -> gameReview1
                         .getTimeClass().equals(timeClass))
@@ -186,14 +183,14 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         }
         return game.getBlackPlayer();
     }
-    private GameReviewDTO updateGameReviewWhenAddGame(
+    private GameReview updateGameReviewWhenAddGame(
             final GameReview review,
             final GameDTOWithDate game,
             final PlayerInGameDTO playerResults) {
         setGameStat(review, playerResults, ADD);
         setBestGame(review, game, playerResults);
         gameReviewRepository.save(review);
-        return gameReviewDTOMapper.apply(review);
+        return review;
     }
 
     private void setBestGame(final GameReview review,
@@ -207,10 +204,11 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         }
         if (gameIsBest(review, playerGameResults)) {
             review.setBestGame(gameByUuid.get());
+            review.setBestRating(playerGameResults.getRating());
         }
     }
 
-    private GameReviewDTO createGameReview(
+    private GameReview createGameReview(
             final GameDTOWithDate game,
             final Player player,
             final PlayerInGameDTO playerResults) {
@@ -220,7 +218,7 @@ public class GameReviewInDatabaseServiceImpl implements GameReviewService {
         setGameStat(gameReview, playerResults, ADD);
         setBestGame(gameReview, game, playerResults);
         gameReviewRepository.save(gameReview);
-        return gameReviewDTOMapper.apply(gameReview);
+        return gameReview;
     }
     private void setGameStat(final GameReview review,
                              final PlayerInGameDTO playerGameResults,

@@ -1,16 +1,16 @@
 package hvorostina.chesscomapi.service;
 
+import hvorostina.chesscomapi.model.GameReview;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTOWithDate;
-import hvorostina.chesscomapi.model.dto.GameReviewDTO;
 
 import java.util.List;
 
 public interface GameReviewService {
-    List<GameReviewDTO> viewPlayerStatistics(Player player);
+    List<GameReview> viewPlayerStatistics(Player player);
 
     void deleteAllReviews();
-    GameReviewDTO manageGameReviewWhenAddGame(
+    GameReview manageGameReviewWhenAddGame(
             GameDTOWithDate game, Player player);
     void manageGameReviewWhenDeleteGame(GameDTOWithDate game, Player player);
 
