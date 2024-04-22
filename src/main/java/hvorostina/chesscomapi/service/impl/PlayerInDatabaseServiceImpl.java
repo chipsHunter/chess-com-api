@@ -4,7 +4,6 @@ import hvorostina.chesscomapi.annotations.AspectAnnotation;
 import hvorostina.chesscomapi.in_memory_cache.RequestPlayerCacheServiceImpl;
 import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.PlayerDTO;
-import hvorostina.chesscomapi.model.dto.PlayerWithGamesDTO;
 import hvorostina.chesscomapi.model.mapper.PlayerDTOMapper;
 import hvorostina.chesscomapi.model.mapper.PlayerWithGamesDTOMapper;
 import hvorostina.chesscomapi.repository.PlayerRepository;
@@ -23,50 +22,29 @@ import java.util.Optional;
 @Transactional
 public class PlayerInDatabaseServiceImpl implements PlayerService {
     private final PlayerRepository playerDatabaseRepository;
-    private final PlayerDTOMapper playerDTOMapper;
-    private final PlayerWithGamesDTOMapper playerWithGamesDTOMapper;
     private final RequestPlayerCacheServiceImpl cache;
     @Override
     @AspectAnnotation
-    public List<PlayerDTO> findAllPlayers() {
-        List<Player> players = playerDatabaseRepository.findAll();
-        return players.stream()
-                .map(playerDTOMapper)
-                .toList();
+    public List<Player> findAllPlayers() {
+        return playerDatabaseRepository.findAll();
     }
     @Override
     @AspectAnnotation
-    public PlayerDTO addPlayer(final Player player) {
-        Player addedPlayer = playerDatabaseRepository.save(player);
-        PlayerDTO playerDTOForCache = playerDTOMapper.apply(addedPlayer);
-        cache.saveOrUpdate(playerDTOForCache);
-        return playerDTOForCache;
+    public Player addPlayer(final Player player) {
+        cache.saveOrUpdate(player);
+        return playerDatabaseRepository.save(player);
     }
     @Override
     @AspectAnnotation
-    public PlayerDTO findPlayerByUsernameAndSaveInCache(
+    public Player findPlayerByUsernameAndSaveInCache(
             final String username) {
-        PlayerDTO playerFromCache = cache.getByUsername(username);
+        Player playerFromCache = cache.getByUsername(username);
         if (playerFromCache != null) {
             return playerFromCache;
         }
-        Optional<Player> playerFromDatabase = playerDatabaseRepository
-                .findPlayerByUsername(username);
-        if (playerFromDatabase.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        }
-        PlayerDTO playerToCache =  playerDTOMapper
-                .apply(playerFromDatabase.get());
-        cache.saveOrUpdate(playerToCache);
-        return playerToCache;
-    }
-    @Override
-    @AspectAnnotation
-    public List<PlayerWithGamesDTO> getAllPlayersWithGames() {
-        List<Player> players = playerDatabaseRepository.findAll();
-        return players.stream()
-                .map(playerWithGamesDTOMapper)
-                .toList();
+        Player player = findPlayerEntityByUsername(username);
+        cache.saveOrUpdate(player);
+        return player;
     }
     @Override
     public Player findPlayerEntityByUsername(final String username) {
@@ -80,18 +58,12 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
 
     @Override
     @AspectAnnotation
-    public PlayerDTO updatePlayerAndSaveInCache(final PlayerDTO fields) {
-        Optional<Player> playerFromDatabase = playerDatabaseRepository
-                .findPlayerByUsername(fields.getUsername());
-        if (playerFromDatabase.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        }
-        Player actualPlayer = playerFromDatabase.get();
+    public Player updatePlayerAndSaveInCache(final PlayerDTO fields) {
+        Player actualPlayer = findPlayerEntityByUsername(fields.getUsername());
         updatePlayerFields(actualPlayer, fields);
+        cache.saveOrUpdate(actualPlayer);
         playerDatabaseRepository.save(actualPlayer);
-        PlayerDTO playerDTOToCache = playerDTOMapper.apply(actualPlayer);
-        cache.saveOrUpdate(playerDTOToCache);
-        return playerDTOToCache;
+        return actualPlayer;
     }
     private void updatePlayerFields(
             final Player player, final PlayerDTO fields) {
@@ -110,11 +82,8 @@ public class PlayerInDatabaseServiceImpl implements PlayerService {
     }
     @Override
     public Integer getIdByUsername(final String username) {
-        Optional<Player> playerInDatabase = playerDatabaseRepository
-                .findPlayerByUsername(username);
-        if (playerInDatabase.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        }
-        return playerInDatabase.get().getId();
+        Player playerInDatabase =
+                findPlayerEntityByUsername(username);
+        return playerInDatabase.getId();
     }
 }

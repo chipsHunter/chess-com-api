@@ -1,4 +1,4 @@
-package hvorostina.chesscomapi.service;
+package hvorostina.chesscomapi.service.impl;
 
 import hvorostina.chesscomapi.in_memory_cache.RequestGamesCacheServiceImpl;
 import hvorostina.chesscomapi.model.Game;
@@ -6,7 +6,6 @@ import hvorostina.chesscomapi.model.Player;
 import hvorostina.chesscomapi.model.dto.GameDTO;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.PlayerRepository;
-import hvorostina.chesscomapi.service.impl.GameInDatabaseServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

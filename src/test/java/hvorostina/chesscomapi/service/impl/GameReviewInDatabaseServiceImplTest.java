@@ -1,4 +1,4 @@
-package hvorostina.chesscomapi.service;
+package hvorostina.chesscomapi.service.impl;
 
 import hvorostina.chesscomapi.model.Game;
 import hvorostina.chesscomapi.model.GameReview;
@@ -8,7 +8,6 @@ import hvorostina.chesscomapi.model.dto.PlayerInGameDTO;
 import hvorostina.chesscomapi.model.mapper.GameDTOWithDateMapper;
 import hvorostina.chesscomapi.repository.GameRepository;
 import hvorostina.chesscomapi.repository.GameReviewRepository;
-import hvorostina.chesscomapi.service.impl.GameReviewInDatabaseServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +24,9 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

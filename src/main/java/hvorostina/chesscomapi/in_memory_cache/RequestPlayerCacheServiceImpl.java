@@ -1,6 +1,6 @@
 package hvorostina.chesscomapi.in_memory_cache;
 
-import hvorostina.chesscomapi.model.dto.PlayerDTO;
+import hvorostina.chesscomapi.model.Player;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class RequestPlayerCacheServiceImpl {
     private static final String PLAYER_REQUEST = "Player ";
-    private final RequestCache<PlayerDTO> cache;
-    public void saveOrUpdate(final PlayerDTO player) {
+    private final RequestCache<Player> cache;
+    public void saveOrUpdate(final Player player) {
         String query = PLAYER_REQUEST + player.getUsername();
         cache.putQuery(query, player);
     }
-    public PlayerDTO getByUsername(final String username) {
+    public Player getByUsername(final String username) {
         String query = PLAYER_REQUEST + username;
         return cache.getResponse(query);
     }
