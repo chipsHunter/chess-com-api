@@ -43,7 +43,7 @@ public class DatabasePlayerController {
     }
     @PostMapping("/save_player_collection")
     public List<PlayerDTO> savePlayerCollection(
-            final @RequestParam List<PlayerDTO> playersDTOs) {
+            final @RequestBody List<PlayerDTO> playersDTOs) {
         if(playersDTOs.isEmpty())
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         List<Player> players = playersDTOs.stream()

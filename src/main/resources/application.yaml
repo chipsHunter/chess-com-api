@@ -8,10 +8,11 @@ spring:
     hibernate:
       ddl-auto: update
     database: postgresql
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+        order_inserts: true
         jdbc:
           batch_size: 20
     open-in-view: true
